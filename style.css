@@ -420,7 +420,7 @@ body.dark-mode .admin-form-section select {
 }
 
 /* Specific button colors (not changed by dark mode for consistency) */
-.admin-truck-item .controls button.set-dispatched { background-color: #6c757d; color: white; }
+.admin-truck-item .controls button.set-en-route { background-color: purple; color: white; }
 .admin-truck-item .controls button.set-available { background-color: #28a745; color: white; }
 .admin-truck-item .controls button.set-destination { background-color: #fd7e14; color: white; }
 .admin-truck-item .controls button.set-logistics { background-color: #007bff; color: white; }
