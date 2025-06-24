@@ -23,7 +23,8 @@ let trucks = [
 ];
 
 // Define the cycle order for truck statuses
-const statusCycleOrder = ['Available', 'Posted', 'Dispatched', 'On-Scene', 'Destination', 'Logistics'];
+// Added 'available' to the end of the cycle to allow return to available status.
+const statusCycleOrder = ['Posted', 'Dispatched', 'On-Scene', 'Destination', 'Logistics', 'available']; 
 
 
 // Default timer durations (in minutes)
