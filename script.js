@@ -23,8 +23,8 @@ let trucks = [
 ];
 
 // Define the cycle order for truck statuses
-// Added 'available' to the end of the cycle to allow return to available status.
-const statusCycleOrder = ['Posted', 'Dispatched', 'On-Scene', 'Destination', 'Logistics', 'available']; 
+// Changed all status names to lowercase to match CSS class names for proper coloring.
+const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'destination', 'logistics', 'available'];
 
 
 // Default timer durations (in minutes)
@@ -69,10 +69,11 @@ function renderTrucks() {
     trucks.forEach(truck => {
         // Create status box element
         const box = document.createElement('div');
-        box.classList.add('status-box', truck.status);
+        // Ensure the class added matches the lowercase status from the truck object
+        box.classList.add('status-box', truck.status); 
         box.dataset.truckId = truck.id; // Store truck ID on the element
 
-        // Conciser display: Truck ID - Status
+        // Conciser display: Truck ID - Status (capitalize for display only)
         let content = `<p><strong>${truck.id}</strong></p>`;
         content += `<p>${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
 
@@ -157,7 +158,7 @@ function addOrUpdateTruck() {
     const id = truckIdInput.value.trim();
     const name = truckNameInput.value.trim();
     const location = truckLocationInput.value.trim();
-    const status = truckStatusSelect.value;
+    const status = truckStatusSelect.value; // Status from dropdown is already lowercase from HTML options
 
     if (!id || !name || !location) {
         alert('Please fill in all truck details.');
@@ -186,7 +187,8 @@ function addOrUpdateTruck() {
             alert('Truck with this ID already exists. Please use a unique ID.');
             return;
         }
-        const newTruck = { id, name, location, status, timer: null, timerEndTime: null };
+        // Ensure initial status of new truck is lowercase
+        const newTruck = { id, name, location, status: status.toLowerCase(), timer: null, timerEndTime: null };
         trucks.push(newTruck);
         // If the new truck has a timed status, start its timer
         if (status === 'destination' || status === 'logistics') {
@@ -214,7 +216,8 @@ function editTruck(truckId) {
         truckIdInput.disabled = true; // Prevent changing ID when editing
         truckNameInput.value = truck.name;
         truckLocationInput.value = truck.location;
-        truckStatusSelect.value = truck.status;
+        // Ensure status displayed in dropdown is consistent
+        truckStatusSelect.value = truck.status; 
         saveTruckBtn.textContent = 'Update Truck';
         cancelEditBtn.style.display = 'inline-block'; // Show cancel button
     }
@@ -262,7 +265,7 @@ function renderAdminTruckList() {
         const item = document.createElement('div');
         item.classList.add('admin-truck-item');
         item.innerHTML = `
-            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status})</span></span>
+            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)})</span></span>
             <div class="controls">
                 <button class="edit-truck" data-id="${truck.id}">Edit</button>
                 ${truck.status === 'available' ? `<button class="take-down" data-id="${truck.id}">Take Down</button>` : ''}
