@@ -23,7 +23,7 @@ let trucks = [
 ];
 
 // Define the cycle order for truck statuses
-const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
+const statusCycleOrder = ['posted', 'en-route', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
 
 
 // Default timer durations (in minutes) for flashing
@@ -69,7 +69,7 @@ const cancelEditBtn = document.getElementById('cancelEditBtn');
 
 // Function to determine if a status should have a counting timer
 function isTimedStatus(status) {
-    return ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics'].includes(status);
+    return ['posted', 'en-route', 'on-scene', 'transporting', 'destination', 'logistics'].includes(status);
 }
 
 // Function to render all trucks to the main display
