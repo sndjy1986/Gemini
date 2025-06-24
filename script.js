@@ -1,397 +1,424 @@
-// script.js
+/* style.css */
 
-// --- 1. Centralized Truck Data ---
-let trucks = [
-    { id: 'Med-0', name: 'Med-0', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-2', name: 'Med-2', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-3', name: 'Med-3', location: 'Homeland Park', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-4', name: 'Med-4', location: 'Williamston', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-5', name: 'Med-5', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-6', name: 'Med-6', location: 'Iva', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null}, 
-    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-];
-
-// Define the cycle order for truck statuses
-// Added 'available' to the end of the cycle to allow return to available status.
-const statusCycleOrder = ['Posted', 'Dispatched', 'On-Scene', 'Destination', 'Logistics', 'available']; 
-
-
-// Default timer durations (in minutes)
-let timerDefaults = {
-    destination: 20, // minutes
-    logistics: 10    // minutes
-};
-
-// Variable to hold the ID of the truck currently being edited
-let editingTruckId = null;
-
-// --- 2. DOM Elements ---
-const trucksContainer = document.getElementById('trucksContainer');
-const availableTruckCountSpan = document.getElementById('availableTruckCount');
-const adminPanelToggleBtn = document.getElementById('adminPanelToggle');
-const adminPanel = document.getElementById('adminPanel');
-const closeAdminPanelBtn = document.getElementById('closeAdminPanel');
-const adminTruckList = document.getElementById('adminTruckList');
-const destinationTimeInput = document.getElementById('destinationTime');
-const logisticsTimeInput = document.getElementById('logisticsTime');
-const saveTimerDefaultsBtn = document.getElementById('saveTimerDefaults');
-const darkModeToggleBtn = document.getElementById('darkModeToggle'); // New Dark Mode Toggle button
-
-
-// Add/Edit Truck Form Elements
-const truckFormTitle = document.getElementById('truckFormTitle');
-const truckIdInput = document.getElementById('truckIdInput');
-const truckNameInput = document.getElementById('truckNameInput');
-const truckLocationInput = document.getElementById('truckLocationInput');
-const truckStatusSelect = document.getElementById('truckStatusSelect');
-const saveTruckBtn = document.getElementById('saveTruckBtn');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-
-
-// --- 3. Functions ---
-
-// Function to render all trucks to the main display
-function renderTrucks() {
-    trucksContainer.innerHTML = ''; // Clear existing trucks
-    let availableCount = 0;
-
-    trucks.forEach(truck => {
-        // Create status box element
-        const box = document.createElement('div');
-        box.classList.add('status-box', truck.status);
-        box.dataset.truckId = truck.id; // Store truck ID on the element
-
-        // Conciser display: Truck ID - Status
-        let content = `<p><strong>${truck.id}</strong></p>`;
-        content += `<p>${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
-
-
-        // Always include the timer placeholder, even if empty, to prevent layout shifts
-        let timerDisplay = '';
-        let timeLeftSeconds = 0;
-        if ((truck.status === 'destination' || truck.status === 'logistics') && truck.timerEndTime) {
-            timeLeftSeconds = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000)); // Time left in seconds
-            const minutes = Math.floor(timeLeftSeconds / 60);
-            const seconds = timeLeftSeconds % 60;
-            timerDisplay = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-        content += `<p class="timer">${timerDisplay}</p>`; // Always add this <p> tag
-        
-        box.innerHTML = content;
-
-        // Add flash-alert class if timer < 1 minute (and > 0)
-        // Flashes RED now!
-        if ((truck.status === 'destination' || truck.status === 'logistics') && timeLeftSeconds > 0 && timeLeftSeconds < 60) {
-            box.classList.add('flash-alert');
-        } else {
-            box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
-        }
-        
-        trucksContainer.appendChild(box);
-
-        // Update available count
-        if (truck.status === 'available') {
-            availableCount++;
-        }
-    });
-
-    updateSystemLevel(availableCount);
+/* --- CSS Variables for Theming --- */
+:root {
+    /* Light Mode Defaults */
+    --body-bg: #f0f2f5;
+    --header-bg: #ffffff;
+    --header-text: #333;
+    --system-level-text: #555;
+    --container-bg: #fff;
+    --box-shadow-light: rgba(0, 0, 0, 0.1);
+    --box-shadow-dark: rgba(0, 0, 0, 0.2);
+    --admin-panel-bg-overlay: rgba(0, 0, 0, 0.8);
+    --admin-panel-content-bg: #fff;
+    --admin-panel-text: #333;
+    --admin-border: #eee;
+    --input-border: #ccc;
+    --input-text: #333;
+    --label-text: #555;
 }
 
-// Function to update the "System Level" display
-function updateSystemLevel(count) {
-    availableTruckCountSpan.textContent = count;
+/* --- Dark Mode Variables --- */
+body.dark-mode {
+    --body-bg: #343a40; /* Dark grey */
+    --header-bg: #212529; /* Even darker grey */
+    --header-text: #f8f9fa; /* Light text */
+    --system-level-text: #adb5bd; /* Lighter grey text */
+    --container-bg: #2c3034; /* Darker container */
+    --box-shadow-light: rgba(0, 0, 0, 0.3);
+    --box-shadow-dark: rgba(0, 0, 0, 0.5);
+    --admin-panel-bg-overlay: rgba(0, 0, 0, 0.9);
+    --admin-panel-content-bg: #343a40;
+    --admin-panel-text: #f8f9fa;
+    --admin-border: #495057; /* Darker border */
+    --input-border: #6c757d;
+    --input-text: #f8f9fa;
+    --label-text: #adb5bd;
 }
 
-// Function to update a truck's status
-function updateTruckStatus(truckId, newStatus) {
-    const truckIndex = trucks.findIndex(truck => truck.id === truckId);
-    if (truckIndex > -1) {
-        const truck = trucks[truckIndex];
 
-        // Clear any existing timer for the truck
-        if (truck.timer) {
-            clearInterval(truck.timer);
-            truck.timer = null;
-            truck.timerEndTime = null;
-        }
+/* General Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 20px;
 
-        truck.status = newStatus;
+    /* Apply variables */
+    background-color: var(--body-bg);
+    color: var(--header-text); /* Default text color from header-text */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-        // Start timer if new status is destination or logistics
-        if (newStatus === 'destination' || newStatus === 'logistics') {
-            const durationInMinutes = timerDefaults[newStatus];
-            truck.timerEndTime = Date.now() + (durationInMinutes * 60 * 1000);
-            truck.timer = setInterval(() => {
-                const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
-                if (timeLeft <= 0) {
-                    clearInterval(truck.timer);
-                    truck.timer = null;
-                    truck.timerEndTime = null;
-                    // Auto-transition to available when timer expires
-                    updateTruckStatus(truckId, 'available'); // This will re-render
-                } else {
-                    renderTrucks(); // Re-render to update timer display and potentially flashing
-                }
-            }, 1000); // Update every second
-        }
+header {
+    width: 90%;
+    max-width: 1200px;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
 
-        renderTrucks(); // Re-render all trucks to reflect status change
-        renderAdminTruckList(); // Re-render admin list as well
+    /* Apply variables */
+    background-color: var(--header-bg);
+    box-shadow: 0 4px 12px var(--box-shadow-light);
+    color: var(--header-text);
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+header h1 {
+    margin-top: 0;
+    color: var(--header-text);
+}
+
+.system-level {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--system-level-text);
+    margin-bottom: 15px;
+}
+
+#adminPanelToggle, #darkModeToggle {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #6c757d; /* Grey button */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Corrected: Changed 5_px to 5px */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 0 5px; /* Space between buttons */
+}
+
+#adminPanelToggle:hover, #darkModeToggle:hover {
+    background-color: #5a6268;
+}
+
+
+.truck-status-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 1200px;
+    min-height: 150px;
+
+    /* Apply variables */
+    background-color: var(--container-bg);
+    box-shadow: 0 4px 12px var(--box-shadow-light);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.status-box {
+    /* Smaller dimensions than before */
+    width: 180px; /* Reduced from 250px */
+    height: 90px; /* Reduced from 120px */
+    padding: 10px; /* Reduced from 15px */
+    font-size: 0.9em; /* Slightly smaller font for the smaller box */
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    border-radius: 6px;
+    color: white;
+    text-align: left;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative; 
+
+    /* Removed transition for size properties, kept for color and transform */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Specific colors for each status */
+.status-box.available {
+    background-color: #28a745; /* Green */
+}
+
+.status-box.dispatched {
+    background-color: #6c757d; /* Clear / Grey */
+}
+
+.status-box.destination {
+    background-color: #fd7e14; /* Orange */
+}
+
+.status-box.logistics {
+    background-color: #007bff; /* Blue */
+}
+
+.status-box.posted {
+    background-color: #dc3545; /* Red */
+}
+
+.status-box.on-scene { /* NEW: Color for On-Scene status */
+    background-color: #6f42c1; /* Example: Purple */
+}
+
+.status-box p {
+    margin: 0;
+    max-width: 100%;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal; /* Allow text to wrap always */
+    /* Removed: .status-box.expanded & { white-space: normal; } */
+}
+
+/* Fix for jumping boxes: Reserve space for timer */
+.status-box .timer {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-top: 5px;
+    min-height: 1.2em;
+    display: block;
+    white-space: normal; /* Allow timer text to wrap always */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Removed: .status-box.expanded & { white-space: normal; } */
+}
+
+/* --- Flashing Animation for Low Timer (RED) --- */
+@keyframes flash-red {
+    0%, 100% {
+        box-shadow: 0 0 0 0px rgba(255, 0, 0, 0.7); /* Red shadow */
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.7); /* More prominent red glow */
+        transform: scale(1.02);
     }
 }
 
-// Function to add or update a truck
-function addOrUpdateTruck() {
-    const id = truckIdInput.value.trim();
-    const name = truckNameInput.value.trim();
-    const location = truckLocationInput.value.trim();
-    const status = truckStatusSelect.value;
-
-    if (!id || !name || !location) {
-        alert('Please fill in all truck details.');
-        return;
-    }
-
-    if (editingTruckId) {
-        // Update existing truck
-        const truckIndex = trucks.findIndex(truck => truck.id === editingTruckId);
-        if (truckIndex > -1) {
-            trucks[truckIndex].name = name;
-            trucks[truckIndex].location = location;
-            // Only update status if it's different and not a timed status that's already running
-            if (trucks[truckIndex].status !== status) {
-                 updateTruckStatus(editingTruckId, status); // Use updateTruckStatus to handle timers
-            }
-        }
-        editingTruckId = null; // Clear editing state
-        truckFormTitle.textContent = 'Add New Truck';
-        saveTruckBtn.textContent = 'Add Truck';
-        cancelEditBtn.style.display = 'none';
-        truckIdInput.disabled = false; // Enable ID input for new trucks
-    } else {
-        // Add new truck
-        if (trucks.some(truck => truck.id === id)) {
-            alert('Truck with this ID already exists. Please use a unique ID.');
-            return;
-        }
-        const newTruck = { id, name, location, status, timer: null, timerEndTime: null };
-        trucks.push(newTruck);
-        // If the new truck has a timed status, start its timer
-        if (status === 'destination' || status === 'logistics') {
-            updateTruckStatus(id, status); // This will initiate the timer
-        }
-    }
-
-    // Clear form
-    truckIdInput.value = '';
-    truckNameInput.value = '';
-    truckLocationInput.value = '';
-    truckStatusSelect.value = 'available'; // Reset to default status
-
-    renderTrucks();
-    renderAdminTruckList();
-}
-
-// Function to load truck data into the form for editing
-function editTruck(truckId) {
-    const truck = trucks.find(t => t.id === truckId);
-    if (truck) {
-        editingTruckId = truck.id;
-        truckFormTitle.textContent = `Edit Truck: ${truck.name} (ID: ${truck.id})`; // Display ID in title
-        truckIdInput.value = truck.id;
-        truckIdInput.disabled = true; // Prevent changing ID when editing
-        truckNameInput.value = truck.name;
-        truckLocationInput.value = truck.location;
-        truckStatusSelect.value = truck.status;
-        saveTruckBtn.textContent = 'Update Truck';
-        cancelEditBtn.style.display = 'inline-block'; // Show cancel button
-    }
-}
-
-// Function to reset the add/edit truck form
-function resetTruckForm() {
-    editingTruckId = null;
-    truckFormTitle.textContent = 'Add New Truck';
-    truckIdInput.value = '';
-    truckIdInput.disabled = false;
-    truckNameInput.value = '';
-    truckLocationInput.value = '';
-    truckStatusSelect.value = 'available';
-    saveTruckBtn.textContent = 'Add Truck';
-    cancelEditBtn.style.display = 'none';
+.status-box.flash-alert {
+    animation: flash-red 1s infinite alternate; /* Apply the red flash animation */
 }
 
 
-// Function to remove a truck (e.g., "take down" from admin)
-function removeTruck(truckId) {
-    // Clear timer if truck being removed has one
-    const truckToRemove = trucks.find(truck => truck.id === truckId);
-    if (truckToRemove && truckToRemove.timer) {
-        clearInterval(truckToRemove.timer);
-    }
-    trucks = trucks.filter(truck => truck.id !== truckId);
-    renderTrucks();
-    renderAdminTruckList();
-    // If the removed truck was being edited, reset the form
-    if (editingTruckId === truckId) {
-        resetTruckForm();
-    }
+/* Admin Panel Styling */
+.admin-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+
+    /* Apply variables */
+    background-color: var(--admin-panel-bg-overlay);
 }
 
-// Function to render the truck list in the admin panel
-function renderAdminTruckList() {
-    adminTruckList.innerHTML = '<h3>Manage Existing Trucks</h3>'; // Re-add title
-    if (trucks.length === 0) {
-        adminTruckList.innerHTML += '<p>No trucks currently in the system.</p>';
-        return;
-    }
-
-    trucks.forEach(truck => {
-        const item = document.createElement('div');
-        item.classList.add('admin-truck-item');
-        item.innerHTML = `
-            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status})</span></span>
-            <div class="controls">
-                <button class="edit-truck" data-id="${truck.id}">Edit</button>
-                ${truck.status === 'available' ? `<button class="take-down" data-id="${truck.id}">Take Down</button>` : ''}
-            </div>
-        `;
-        adminTruckList.appendChild(item);
-    });
-
-    // Attach event listeners to the new buttons in the admin panel
-    adminTruckList.querySelectorAll('.edit-truck').forEach(button => {
-        button.addEventListener('click', (e) => editTruck(e.target.dataset.id));
-    });
-    adminTruckList.querySelectorAll('.take-down').forEach(button => {
-        button.addEventListener('click', (e) => {
-            if (confirm(`Are you sure you want to take down ${e.target.dataset.id}? This cannot be undone.`)) {
-                removeTruck(e.target.dataset.id);
-            }
-        });
-    });
-    // Removed status change buttons from admin panel as they are now handled by clicking the box
+.admin-panel.active {
+    opacity: 1;
+    visibility: visible;
 }
 
-// Function to initialize timers on page load for trucks already in timer status
-function initializeTimers() {
-    trucks.forEach(truck => {
-        if ((truck.status === 'destination' || truck.status === 'logistics')) {
-            // Check if timerEndTime exists and is in the future
-            if (truck.timerEndTime && truck.timerEndTime > Date.now()) {
-                updateTruckStatus(truck.id, truck.status); // This will restart the interval
-            } else if (!truck.timerEndTime && truck.initialDuration) {
-                // If no end time, but an initial duration, start new timer
-                truck.timerEndTime = Date.now() + (truck.initialDuration * 60 * 1000);
-                updateTruckStatus(truck.id, truck.status);
-            } else if (truck.timerEndTime && truck.timerEndTime <= Date.now()) {
-                // If the timer has already expired, immediately transition to available
-                updateTruckStatus(truck.id, 'available');
-            }
-        }
-    });
+.admin-panel-content {
+    padding: 30px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    /* Apply variables */
+    background-color: var(--admin-panel-content-bg);
+    box-shadow: 0 4px 20px var(--box-shadow-dark);
+    color: var(--admin-panel-text);
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-// Function to toggle dark mode
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    // Save preference to local storage
-    if (document.body.classList.contains('dark-mode')) {
-        localStorage.setItem('darkMode', 'enabled');
-    } else {
-        localStorage.setItem('darkMode', 'disabled');
-    }
+.admin-panel h2, .admin-panel h3 {
+    margin-top: 0;
+    text-align: center;
+    color: var(--admin-panel-text);
 }
 
-// Function to apply dark mode based on saved preference
-function applyDarkModePreference() {
-    if (localStorage.getItem('darkMode') === 'enabled') {
-        document.body.classList.add('dark-mode');
-    }
+#closeAdminPanel {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Add/Edit Truck Form */
+.admin-form-section {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--admin-border); /* Use variable */
+}
+
+.admin-form-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--admin-panel-text); /* Use variable */
+}
+
+.admin-form-section div {
+    margin-bottom: 10px;
+}
+
+.admin-form-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--label-text); /* Use variable */
+}
+
+.admin-form-section input[type="text"],
+.admin-form-section input[type="number"],
+.admin-form-section select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid var(--input-border); /* Use variable */
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: var(--container-bg); /* Use container bg for input field */
+    color: var(--input-text); /* Use variable */
+}
+/* Ensure dark mode input background and text are distinct */
+body.dark-mode .admin-form-section input[type="text"],
+body.dark-mode .admin-form-section input[type="number"],
+body.dark-mode .admin-form-section select {
+    background-color: #495057; /* Slightly lighter dark grey for contrast */
+    color: #f8f9fa;
 }
 
 
-// --- 4. Event Listeners ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    applyDarkModePreference(); // Apply dark mode preference on load
-
-    renderTrucks(); // Initial render of all trucks
-    initializeTimers(); // Start timers for any trucks already in timer status
-
-    // Removed hover effect event listeners, now truck boxes are static size:
-    // trucksContainer.addEventListener('mouseover', (event) => { ... });
-    // trucksContainer.addEventListener('mouseout', (event) => { ... });
-
-    // New: Click to cycle truck status
-    trucksContainer.addEventListener('click', (event) => {
-        const targetBox = event.target.closest('.status-box');
-        if (targetBox) {
-            const truckId = targetBox.dataset.truckId;
-            const truckIndex = trucks.findIndex(truck => truck.id === truckId);
-            if (truckIndex > -1) {
-                const currentStatus = trucks[truckIndex].status;
-                const currentIndex = statusCycleOrder.indexOf(currentStatus);
-                const nextIndex = (currentIndex + 1) % statusCycleOrder.length;
-                const nextStatus = statusCycleOrder[nextIndex];
-                updateTruckStatus(truckId, nextStatus);
-            }
-        }
-    });
+.admin-form-section button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.admin-form-section button#cancelEditBtn {
+    background-color: #f0ad4e;
+    margin-left: 10px;
+}
 
 
-    // Admin Panel Toggling
-    adminPanelToggleBtn.addEventListener('click', () => {
-        adminPanel.classList.add('active');
-        renderAdminTruckList(); // Render list when opening admin panel
-        resetTruckForm(); // Clear/reset form when opening panel
-        // Set initial values for timer inputs
-        destinationTimeInput.value = timerDefaults.destination;
-        logisticsTimeInput.value = timerDefaults.logistics;
-    });
+#adminTruckList {
+    flex-grow: 1;
+    border-top: 1px solid var(--admin-border); /* Use variable */
+    padding-top: 20px;
+}
 
-    closeAdminPanelBtn.addEventListener('click', () => {
-        adminPanel.classList.remove('active');
-    });
+.admin-truck-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--admin-border); /* Use variable */
+    flex-wrap: wrap;
+}
 
-    // Add/Update Truck
-    saveTruckBtn.addEventListener('click', addOrUpdateTruck);
-    cancelEditBtn.addEventListener('click', resetTruckForm);
+.admin-truck-item:last-child {
+    border-bottom: none;
+}
 
-    // Save Timer Defaults
-    saveTimerDefaultsBtn.addEventListener('click', () => {
-        const newDestTime = parseInt(destinationTimeInput.value);
-        const newLogTime = parseInt(logisticsTimeInput.value);
+.admin-truck-item span {
+    font-weight: bold;
+    color: var(--admin-panel-text); /* Use variable */
+    flex-grow: 1;
+    min-width: 150px;
+    font-size: 1.1em;
+}
+/* Style for sub-info in admin list item */
+.admin-truck-item span span {
+    font-size:0.9em;
+    font-weight:normal;
+    color: var(--label-text); /* Use variable */
+}
 
-        if (isNaN(newDestTime) || isNaN(newLogTime) || newDestTime <= 0 || newLogTime <= 0) {
-            alert('Please enter valid positive numbers for timer defaults.');
-            return;
-        }
+.admin-truck-item .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+    margin-left: auto;
+}
 
-        timerDefaults.destination = newDestTime;
-        timerDefaults.logistics = newLogTime;
-        alert('Timer defaults saved!');
-    });
 
-    // Make admin panel content clickable, not the overlay itself
-    adminPanel.addEventListener('click', (event) => {
-        if (event.target === adminPanel) {
-            adminPanel.classList.remove('active');
-        }
-    });
+.admin-truck-item .controls button,
+.admin-panel .timer-settings button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
 
-    // New: Dark Mode Toggle Event Listener
-    darkModeToggleBtn.addEventListener('click', toggleDarkMode);
-});
+/* Specific button colors (not changed by dark mode for consistency) */
+.admin-truck-item .controls button.set-dispatched { background-color: #6c757d; color: white; }
+.admin-truck-item .controls button.set-available { background-color: #28a745; color: white; }
+.admin-truck-item .controls button.set-destination { background-color: #fd7e14; color: white; }
+.admin-truck-item .controls button.set-logistics { background-color: #007bff; color: white; }
+.admin-truck-item .controls button.set-posted { background-color: #dc3545; color: white; }
+.admin-truck-item .controls button.take-down { background-color: #f0ad4e; color: white; }
+.admin-truck-item .controls button.edit-truck { background-color: #17a2b8; color: white; }
+
+
+.admin-truck-item .controls button:hover,
+.admin-panel .timer-settings button:hover,
+.admin-form-section button:hover {
+    opacity: 0.9;
+}
+
+.admin-panel .timer-settings {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--admin-border); /* Use variable */
+}
+
+.admin-panel .timer-settings label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--label-text); /* Use variable */
+}
+
+.admin-panel .timer-settings input[type="number"] {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid var(--input-border); /* Use variable */
+    border-radius: 4px;
+    margin-bottom: 15px;
+    background-color: var(--container-bg); /* Use container bg for input field */
+    color: var(--input-text); /* Use variable */
+}
+/* Ensure dark mode input background and text are distinct */
+body.dark-mode .admin-panel .timer-settings input[type="number"] {
+    background-color: #495057;
+    color: #f8f9fa;
+}
+
+
+.admin-panel .timer-settings button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+}
