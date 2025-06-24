@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Dispatch System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Truck Dispatch Overview</h1>
+        <div class="system-level">
+            System Level: <span id="availableTruckCount">0</span> Available Trucks
+        </div>
+        <button id="adminPanelToggle">Open Admin Panel</button>
+        <button id="darkModeToggle">Toggle Dark Mode</button> </header>
+
+    <div class="truck-status-container" id="trucksContainer">
+        </div>
+
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-panel-content">
+            <h2>Admin Panel</h2>
+            <button id="closeAdminPanel">Close</button>
+
+            <div class="admin-form-section">
+                <h3 id="truckFormTitle">Add New Truck</h3>
+                <div>
+                    <label for="truckIdInput">Truck ID:</label>
+                    <input type="text" id="truckIdInput" placeholder="e.g., T101" required>
+                </div>
+                <div>
+                    <label for="truckNameInput">Truck Name:</label>
+                    <input type="text" id="truckNameInput" placeholder="e.g., Green Giant" required>
+                </div>
+                <div>
+                    <label for="truckLocationInput">Location:</label>
+                    <input type="text" id="truckLocationInput" placeholder="e.g., NYC" required>
+                </div>
+                <div>
+                    <label for="truckStatusSelect">Initial Status:</label>
+                    <select id="truckStatusSelect">
+                        <option value="available">Available</option>
+                        <option value="dispatched">Dispatched</option>
+                        <option value="posted">Posted</option>
+                        <option value="logistics">Logistics</option>
+                        <option value="destination">Destination</option>
+                    </select>
+                </div>
+                <button id="saveTruckBtn">Add Truck</button>
+                <button id="cancelEditBtn" style="display:none;">Cancel Edit</button>
+            </div>
+
+            <div id="adminTruckList">
+                <h3>Manage Existing Trucks</h3>
+                </div>
+
+            <div class="timer-settings">
+                <h3>Timer Defaults</h3>
+                <label for="destinationTime">Destination Time (minutes):</label>
+                <input type="number" id="destinationTime" value="30" min="1">
+                <label for="logisticsTime">Logistics Time (minutes):</label>
+                <input type="number" id="logisticsTime" value="60" min="1">
+                <button id="saveTimerDefaults">Save Timer Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
