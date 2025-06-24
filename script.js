@@ -20,7 +20,7 @@ let trucks = [
     { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
     { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
     { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-
+];
 
 // Define the cycle order for truck statuses
 const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
