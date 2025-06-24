@@ -162,6 +162,10 @@ header h1 {
     background-color: #6c757d; /* Grey */
 }
 
+.status-box.transporting { /* NEW: Color for Transporting status */
+    background-color: #add8e6; /* Light Blue */
+}
+
 .status-box p {
     margin: 0;
     max-width: 100%;
@@ -169,7 +173,6 @@ header h1 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal; /* Allow text to wrap always */
-    /* Removed: .status-box.expanded & { white-space: normal; } */
 }
 
 /* Fix for jumping boxes: Reserve space for timer */
@@ -182,7 +185,6 @@ header h1 {
     white-space: normal; /* Allow timer text to wrap always */
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Removed: .status-box.expanded & { white-space: normal; } */
 }
 
 /* --- Flashing Animation for Low Timer (RED) --- */
