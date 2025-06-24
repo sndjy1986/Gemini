@@ -2,6 +2,7 @@
 
 // --- 1. Centralized Truck Data ---
 let trucks = [
+    { id: 'Med-0', name: 'Med-0', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
     { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-2', name: 'Med-2', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-3', name: 'Med-3', location: 'Homeland Park', status: 'available', timer: null, timerEndTime: null },
@@ -11,17 +12,24 @@ let trucks = [
     { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null}, 
-    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null}, 
+    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
 ];
 
 // Define the cycle order for truck statuses
-const statusCycleOrder = ['dispatched', 'destination', 'available', 'posted', 'logistics'];
+const statusCycleOrder = ['Posted', 'Dispatched', 'On-Scene' 'Destination', 'Logistics'];
 
 
 // Default timer durations (in minutes)
 let timerDefaults = {
-    destination: 30, // minutes
-    logistics: 60    // minutes
+    destination: 20, // minutes
+    logistics: 10    // minutes
 };
 
 // Variable to hold the ID of the truck currently being edited
