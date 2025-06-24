@@ -1,33 +1,39 @@
 // script.js
 
 // --- 1. Centralized Truck Data ---
+// Note: timerStartTime will be set when a truck becomes active.
+// initialDuration is no longer directly used for timers as they count up,
+// but kept for reference if loading from a pre-set state.
 let trucks = [
-    { id: 'Med-0', name: 'Med-0', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-2', name: 'Med-2', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-3', name: 'Med-3', location: 'Homeland Park', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-4', name: 'Med-4', location: 'Williamston', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-5', name: 'Med-5', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-6', name: 'Med-6', location: 'Iva', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null}, 
-    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
-    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-0', name: 'Med-0', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-2', name: 'Med-2', location: 'Rock Springs', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-3', name: 'Med-3', location: 'Homeland Park', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-4', name: 'Med-4', location: 'Williamston', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-5', name: 'Med-5', location: 'Rock Springs', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-6', name: 'Med-6', location: 'Iva', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerStartTime: null },
+    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerStartTime: null}, 
+    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    // Example: Trucks starting in an active status with a timer that counts up from now
+    { id: 'T401', name: 'Truck 401', location: 'Miami', status: 'destination', timer: null, timerStartTime: Date.now() - 30 * 1000 }, // Start 30s ago for quick flash test
+    { id: 'T501', name: 'Truck 501', location: 'Houston', status: 'logistics', timer: null, timerStartTime: Date.now() - 70 * 1000 }, // Start 70s ago for quick flash test
+    { id: 'T601', name: 'Truck 601', location: 'Orlando', status: 'transporting', timer: null, timerStartTime: Date.now() - 120 * 1000 }, // Start 2 mins ago
 ];
 
 // Define the cycle order for truck statuses
-// Changed all status names to lowercase to match CSS class names for proper coloring.
-const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'destination', 'logistics', 'available'];
+const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
 
 
-// Default timer durations (in minutes)
+// Default timer durations (in minutes) for flashing
 let timerDefaults = {
     destination: 20, // minutes
     logistics: 10    // minutes
@@ -61,6 +67,11 @@ const cancelEditBtn = document.getElementById('cancelEditBtn');
 
 // --- 3. Functions ---
 
+// Function to determine if a status should have a counting timer
+function isTimedStatus(status) {
+    return ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics'].includes(status);
+}
+
 // Function to render all trucks to the main display
 function renderTrucks() {
     trucksContainer.innerHTML = ''; // Clear existing trucks
@@ -78,25 +89,29 @@ function renderTrucks() {
         content += `<p>${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
 
 
-        // Always include the timer placeholder, even if empty, to prevent layout shifts
+        // Always include the timer placeholder if it's a timed status, even if time is 0
         let timerDisplay = '';
-        let timeLeftSeconds = 0;
-        if ((truck.status === 'destination' || truck.status === 'logistics') && truck.timerEndTime) {
-            timeLeftSeconds = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000)); // Time left in seconds
-            const minutes = Math.floor(timeLeftSeconds / 60);
-            const seconds = timeLeftSeconds % 60;
+        let elapsedTimeSeconds = 0;
+        if (isTimedStatus(truck.status) && truck.timerStartTime) {
+            elapsedTimeSeconds = Math.floor((Date.now() - truck.timerStartTime) / 1000); // Time elapsed in seconds
+            const minutes = Math.floor(elapsedTimeSeconds / 60);
+            const seconds = elapsedTimeSeconds % 60;
             timerDisplay = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         content += `<p class="timer">${timerDisplay}</p>`; // Always add this <p> tag
         
         box.innerHTML = content;
 
-        // Add flash-alert class if timer < 1 minute (and > 0)
-        // Flashes RED now!
-        if ((truck.status === 'destination' || truck.status === 'logistics') && timeLeftSeconds > 0 && timeLeftSeconds < 60) {
-            box.classList.add('flash-alert');
+        // Add flash-alert class only for 'destination' or 'logistics' if elapsed time >= predetermined length
+        if ((truck.status === 'destination' || truck.status === 'logistics') && truck.timerStartTime) {
+            const requiredTimeSeconds = timerDefaults[truck.status] * 60;
+            if (elapsedTimeSeconds >= requiredTimeSeconds) {
+                box.classList.add('flash-alert');
+            } else {
+                box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
+            }
         } else {
-            box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
+            box.classList.remove('flash-alert'); // No flash for non-timed statuses or other timed statuses
         }
         
         trucksContainer.appendChild(box);
@@ -125,27 +140,21 @@ function updateTruckStatus(truckId, newStatus) {
         if (truck.timer) {
             clearInterval(truck.timer);
             truck.timer = null;
-            truck.timerEndTime = null;
         }
-
+        
         truck.status = newStatus;
 
-        // Start timer if new status is destination or logistics
-        if (newStatus === 'destination' || newStatus === 'logistics') {
-            const durationInMinutes = timerDefaults[newStatus];
-            truck.timerEndTime = Date.now() + (durationInMinutes * 60 * 1000);
+        // Reset timer start time if it's becoming a timed status
+        if (isTimedStatus(newStatus)) {
+            truck.timerStartTime = Date.now(); // Set start time to now
+            // Start the interval for this truck
             truck.timer = setInterval(() => {
-                const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
-                if (timeLeft <= 0) {
-                    clearInterval(truck.timer);
-                    truck.timer = null;
-                    truck.timerEndTime = null;
-                    // Auto-transition to available when timer expires
-                    updateTruckStatus(truckId, 'available'); // This will re-render
-                } else {
-                    renderTrucks(); // Re-render to update timer display and potentially flashing
-                }
+                // No auto-transition here; renderTrucks will handle display and flashing
+                renderTrucks(); 
             }, 1000); // Update every second
+        } else {
+            // If status is not timed (e.g., 'available'), clear timer start time
+            truck.timerStartTime = null; 
         }
 
         renderTrucks(); // Re-render all trucks to reflect status change
@@ -158,7 +167,8 @@ function addOrUpdateTruck() {
     const id = truckIdInput.value.trim();
     const name = truckNameInput.value.trim();
     const location = truckLocationInput.value.trim();
-    const status = truckStatusSelect.value; // Status from dropdown is already lowercase from HTML options
+    const status = truckStatusSelect.value.toLowerCase(); // Ensure status from dropdown is lowercase
+
 
     if (!id || !name || !location) {
         alert('Please fill in all truck details.');
@@ -171,9 +181,9 @@ function addOrUpdateTruck() {
         if (truckIndex > -1) {
             trucks[truckIndex].name = name;
             trucks[truckIndex].location = location;
-            // Only update status if it's different and not a timed status that's already running
+            // Only update status if it's different. updateTruckStatus handles timers.
             if (trucks[truckIndex].status !== status) {
-                 updateTruckStatus(editingTruckId, status); // Use updateTruckStatus to handle timers
+                 updateTruckStatus(editingTruckId, status); 
             }
         }
         editingTruckId = null; // Clear editing state
@@ -187,12 +197,19 @@ function addOrUpdateTruck() {
             alert('Truck with this ID already exists. Please use a unique ID.');
             return;
         }
-        // Ensure initial status of new truck is lowercase
-        const newTruck = { id, name, location, status: status.toLowerCase(), timer: null, timerEndTime: null };
+        // Initialize new truck with timerStartTime if it's a timed status
+        const newTruck = { 
+            id, 
+            name, 
+            location, 
+            status, 
+            timer: null, 
+            timerStartTime: isTimedStatus(status) ? Date.now() : null 
+        };
         trucks.push(newTruck);
-        // If the new truck has a timed status, start its timer
-        if (status === 'destination' || status === 'logistics') {
-            updateTruckStatus(id, status); // This will initiate the timer
+        // If the new truck has a timed status, start its timer interval
+        if (isTimedStatus(status)) {
+            updateTruckStatus(id, status); // This will initiate the interval
         }
     }
 
@@ -216,7 +233,7 @@ function editTruck(truckId) {
         truckIdInput.disabled = true; // Prevent changing ID when editing
         truckNameInput.value = truck.name;
         truckLocationInput.value = truck.location;
-        // Ensure status displayed in dropdown is consistent
+        // Ensure status displayed in dropdown is consistent with lowercase status
         truckStatusSelect.value = truck.status; 
         saveTruckBtn.textContent = 'Update Truck';
         cancelEditBtn.style.display = 'inline-block'; // Show cancel button
@@ -291,19 +308,16 @@ function renderAdminTruckList() {
 // Function to initialize timers on page load for trucks already in timer status
 function initializeTimers() {
     trucks.forEach(truck => {
-        if ((truck.status === 'destination' || truck.status === 'logistics')) {
-            // Check if timerEndTime exists and is in the future
-            if (truck.timerEndTime && truck.timerEndTime > Date.now()) {
-                updateTruckStatus(truck.id, truck.status); // This will restart the interval
-            } else if (!truck.timerEndTime && truck.initialDuration) {
-                // If no end time, but an initial duration, start new timer
-                truck.timerEndTime = Date.now() + (truck.initialDuration * 60 * 1000);
-                updateTruckStatus(truck.id, truck.status);
-            } else if (truck.timerEndTime && truck.timerEndTime <= Date.now()) {
-                // If the timer has already expired, immediately transition to available
-                updateTruckStatus(truck.id, 'available');
-            }
+        // Only attempt to start timers for statuses that are meant to be timed AND have a start time
+        if (isTimedStatus(truck.status) && truck.timerStartTime) {
+            updateTruckStatus(truck.id, truck.status); // This will restart the interval if needed
+        } else if (isTimedStatus(truck.status) && !truck.timerStartTime) {
+            // If a truck is in a timed status but somehow doesn't have a start time (e.g., new default data)
+            // set its start time now and update status to kick off timer.
+            truck.timerStartTime = Date.now();
+            updateTruckStatus(truck.id, truck.status);
         }
+        // No action needed for 'available' status as it doesn't have a timer
     });
 }
 
@@ -334,10 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrucks(); // Initial render of all trucks
     initializeTimers(); // Start timers for any trucks already in timer status
 
-    // Removed hover effect event listeners, now truck boxes are static size:
-    // trucksContainer.addEventListener('mouseover', (event) => { ... });
-    // trucksContainer.addEventListener('mouseout', (event) => { ... });
-
     // New: Click to cycle truck status
     trucksContainer.addEventListener('click', (event) => {
         const targetBox = event.target.closest('.status-box');
@@ -347,7 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (truckIndex > -1) {
                 const currentStatus = trucks[truckIndex].status;
                 const currentIndex = statusCycleOrder.indexOf(currentStatus);
-                const nextIndex = (currentIndex + 1) % statusCycleOrder.length;
+                // Cycle to next status, loop back to start if at end
+                const nextIndex = (currentIndex + 1) % statusCycleOrder.length; 
                 const nextStatus = statusCycleOrder[nextIndex];
                 updateTruckStatus(truckId, nextStatus);
             }
