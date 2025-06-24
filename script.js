@@ -1,9 +1,6 @@
 // script.js
 
 // --- 1. Centralized Truck Data ---
-// Note: timerStartTime will be set when a truck becomes active.
-// initialDuration is no longer directly used for timers as they count up,
-// but kept for reference if loading from a pre-set state.
 let trucks = [
     { id: 'Med-0', name: 'Med-0', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
     { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null },
@@ -23,11 +20,7 @@ let trucks = [
     { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
     { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
     { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-    // Example: Trucks starting in an active status with a timer that counts up from now
-    { id: 'T401', name: 'Truck 401', location: 'Miami', status: 'destination', timer: null, timerStartTime: Date.now() - 30 * 1000 }, // Start 30s ago for quick flash test
-    { id: 'T501', name: 'Truck 501', location: 'Houston', status: 'logistics', timer: null, timerStartTime: Date.now() - 70 * 1000 }, // Start 70s ago for quick flash test
-    { id: 'T601', name: 'Truck 601', location: 'Orlando', status: 'transporting', timer: null, timerStartTime: Date.now() - 120 * 1000 }, // Start 2 mins ago
-];
+
 
 // Define the cycle order for truck statuses
 const statusCycleOrder = ['posted', 'dispatched', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
@@ -41,6 +34,9 @@ let timerDefaults = {
 
 // Variable to hold the ID of the truck currently being edited
 let editingTruckId = null;
+// Variable to hold the ID of the truck currently right-clicked for context menu
+let rightClickedTruckId = null; 
+
 
 // --- 2. DOM Elements ---
 const trucksContainer = document.getElementById('trucksContainer');
@@ -53,6 +49,10 @@ const destinationTimeInput = document.getElementById('destinationTime');
 const logisticsTimeInput = document.getElementById('logisticsTime');
 const saveTimerDefaultsBtn = document.getElementById('saveTimerDefaults');
 const darkModeToggleBtn = document.getElementById('darkModeToggle'); // New Dark Mode Toggle button
+
+// New: Context Menu Elements
+const contextMenu = document.getElementById('contextMenu');
+const contextMenuList = document.getElementById('contextMenuList');
 
 
 // Add/Edit Truck Form Elements
@@ -348,10 +348,19 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrucks(); // Initial render of all trucks
     initializeTimers(); // Start timers for any trucks already in timer status
 
-    // New: Click to cycle truck status
+    // Removed hover effect event listeners, now truck boxes are static size:
+    // trucksContainer.addEventListener('mouseover', (event) => { ... });
+    // trucksContainer.addEventListener('mouseout', (event) => { ... });
+
+    // New: Click to cycle truck status (left-click)
     trucksContainer.addEventListener('click', (event) => {
         const targetBox = event.target.closest('.status-box');
         if (targetBox) {
+            // Check if right-click menu is currently open, if so, don't cycle on left-click on box
+            if (contextMenu.style.display === 'block') {
+                return;
+            }
+
             const truckId = targetBox.dataset.truckId;
             const truckIndex = trucks.findIndex(truck => truck.id === truckId);
             if (truckIndex > -1) {
@@ -363,6 +372,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateTruckStatus(truckId, nextStatus);
             }
         }
+    });
+
+    // NEW: Right-Click (Context Menu) functionality
+    let activeTruckIdForContextMenu = null; // To store which truck was right-clicked
+
+    trucksContainer.addEventListener('contextmenu', (event) => {
+        const targetBox = event.target.closest('.status-box');
+        if (targetBox) {
+            event.preventDefault(); // Prevent default browser context menu
+            activeTruckIdForContextMenu = targetBox.dataset.truckId; // Store truck ID
+
+            // Populate context menu
+            contextMenuList.innerHTML = ''; // Clear previous items
+            statusCycleOrder.forEach(status => {
+                const listItem = document.createElement('li');
+                listItem.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                listItem.dataset.status = status; // Store status value (lowercase)
+                contextMenuList.appendChild(listItem);
+            });
+
+            // Position context menu
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.top = `${event.clientY}px`;
+            contextMenu.style.display = 'block';
+        }
+    });
+
+    // Hide context menu on any click outside or scroll
+    document.addEventListener('click', (event) => {
+        // Hide if not clicking on the context menu itself
+        if (!contextMenu.contains(event.target)) {
+            contextMenu.style.display = 'none';
+            activeTruckIdForContextMenu = null;
+        }
+    });
+
+    window.addEventListener('scroll', () => {
+        contextMenu.style.display = 'none';
+        activeTruckIdForContextMenu = null;
+    });
+
+    // Handle clicks WITHIN the context menu
+    contextMenuList.addEventListener('click', (event) => {
+        const selectedStatus = event.target.dataset.status; // Get lowercase status
+        if (selectedStatus && activeTruckIdForContextMenu) {
+            updateTruckStatus(activeTruckIdForContextMenu, selectedStatus);
+        }
+        contextMenu.style.display = 'none'; // Hide menu after selection
+        activeTruckIdForContextMenu = null; // Clear active truck
     });
 
 
@@ -406,6 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // New: Dark Mode Toggle Event Listener
+    // Dark Mode Toggle Event Listener
     darkModeToggleBtn.addEventListener('click', toggleDarkMode);
 });
