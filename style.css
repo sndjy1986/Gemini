@@ -17,6 +17,12 @@
     --input-border: #ccc;
     --input-text: #333;
     --label-text: #555;
+
+    /* Context Menu Colors */
+    --context-menu-bg: #ffffff;
+    --context-menu-border: #ccc;
+    --context-menu-text: #333;
+    --context-menu-hover-bg: #f0f0f0;
 }
 
 /* --- Dark Mode Variables --- */
@@ -35,6 +41,12 @@ body.dark-mode {
     --input-border: #6c757d;
     --input-text: #f8f9fa;
     --label-text: #adb5bd;
+
+    /* Context Menu Colors - Dark Mode */
+    --context-menu-bg: #3c4043;
+    --context-menu-border: #5a5a5a;
+    --context-menu-text: #e0e0e0;
+    --context-menu-hover-bg: #5a5a5a;
 }
 
 
@@ -116,11 +128,11 @@ header h1 {
 }
 
 .status-box {
-    /* Smaller dimensions than before */
-    width: 180px; /* Reduced from 250px */
-    height: 90px; /* Reduced from 120px */
-    padding: 10px; /* Reduced from 15px */
-    font-size: 0.9em; /* Slightly smaller font for the smaller box */
+    /* Updated dimensions to 160px wide x 80px high */
+    width: 160px; 
+    height: 80px; 
+    padding: 8px; /* Adjusted padding slightly for new size */
+    font-size: 0.85em; /* Slightly smaller font for new box size */
     
     display: flex;
     flex-direction: column;
@@ -162,7 +174,7 @@ header h1 {
     background-color: #6c757d; /* Grey */
 }
 
-.status-box.transporting { /* NEW: Color for Transporting status */
+.status-box.transporting { /* New: Color for Transporting status */
     background-color: #add8e6; /* Light Blue */
 }
 
@@ -201,6 +213,39 @@ header h1 {
 
 .status-box.flash-alert {
     animation: flash-red 1s infinite alternate; /* Apply the red flash animation */
+}
+
+
+/* NEW: Custom Context Menu Styling */
+.context-menu {
+    position: fixed; /* Stays in place relative to the viewport */
+    background-color: var(--context-menu-bg);
+    border: 1px solid var(--context-menu-border);
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it's on top of other content */
+    display: none; /* Hidden by default, shown by JS */
+    padding: 5px 0; /* Padding inside the menu */
+    min-width: 150px;
+    color: var(--context-menu-text); /* Default text color */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.context-menu ul {
+    list-style: none; /* Remove bullet points */
+    padding: 0;
+    margin: 0;
+}
+
+.context-menu ul li {
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap; /* Prevent menu items from wrapping */
+}
+
+.context-menu ul li:hover {
+    background-color: var(--context-menu-hover-bg);
 }
 
 
