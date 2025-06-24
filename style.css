@@ -116,11 +116,11 @@ header h1 {
 }
 
 .status-box {
-    /* Smaller dimensions than before */
-    width: 180px; /* Reduced from 250px */
-    height: 90px; /* Reduced from 120px */
-    padding: 10px; /* Reduced from 15px */
-    font-size: 0.9em; /* Slightly smaller font for the smaller box */
+    /* Updated dimensions to 160px wide x 80px high */
+    width: 160px; 
+    height: 80px; 
+    padding: 8px; /* Adjusted padding slightly for new size */
+    font-size: 0.85em; /* Slightly smaller font for new box size */
     
     display: flex;
     flex-direction: column;
@@ -162,7 +162,7 @@ header h1 {
     background-color: #6c757d; /* Grey */
 }
 
-.status-box.transporting { /* NEW: Color for Transporting status */
+.status-box.transporting { /* New: Color for Transporting status */
     background-color: #add8e6; /* Light Blue */
 }
 
