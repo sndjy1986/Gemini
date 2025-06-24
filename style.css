@@ -143,23 +143,23 @@ header h1 {
 }
 
 .status-box.dispatched {
-    background-color: #6c757d; /* Clear / Grey */
-}
-
-.status-box.destination {
-    background-color: #fd7e14; /* Orange */
-}
-
-.status-box.logistics {
     background-color: #007bff; /* Blue */
 }
 
-.status-box.posted {
+.status-box.destination {
+    background-color: #ffc107; /* Yellow */
+}
+
+.status-box.logistics {
     background-color: #dc3545; /* Red */
 }
 
-.status-box.on-scene { /* NEW: Color for On-Scene status */
-    background-color: #6f42c1; /* Example: Purple */
+.status-box.posted {
+    background-color: #fd7e14; /* Orange */
+}
+
+.status-box.on-scene { 
+    background-color: #6c757d; /* Grey */
 }
 
 .status-box p {
