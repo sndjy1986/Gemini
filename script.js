@@ -1,3 +1,4 @@
+
 // script.js
 
 // --- 1. Centralized Truck Data ---
