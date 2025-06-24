@@ -88,7 +88,7 @@ header h1 {
     background-color: #6c757d; /* Grey button */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 5px; /* Corrected: Changed 5_px to 5px */
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin: 0 5px; /* Space between buttons */
@@ -158,7 +158,9 @@ header h1 {
     background-color: #dc3545; /* Red */
 }
 
-/* Removed .status-box.expanded as it's no longer needed */
+.status-box.on-scene { /* NEW: Color for On-Scene status */
+    background-color: #6f42c1; /* Example: Purple */
+}
 
 .status-box p {
     margin: 0;
@@ -167,6 +169,7 @@ header h1 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal; /* Allow text to wrap always */
+    /* Removed: .status-box.expanded & { white-space: normal; } */
 }
 
 /* Fix for jumping boxes: Reserve space for timer */
@@ -179,6 +182,7 @@ header h1 {
     white-space: normal; /* Allow timer text to wrap always */
     overflow: hidden;
     text-overflow: ellipsis;
+    /* Removed: .status-box.expanded & { white-space: normal; } */
 }
 
 /* --- Flashing Animation for Low Timer (RED) --- */
