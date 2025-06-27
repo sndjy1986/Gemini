@@ -10,19 +10,20 @@ let trucks = [
     { id: 'Med-5', name: 'Med-5', location: 'Rock Springs', status: 'available', timer: null, timerStartTime: null },
     { id: 'Med-6', name: 'Med-6', location: 'Iva', status: 'available', timer: null, timerStartTime: null },
     { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerStartTime: null },
-    { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerStartTime: null },
-    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerStartTime: null}, 
-    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
-    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerStartTime: null},
+    { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerEndTime: null },
+    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null}, 
+    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-12', name: 'Med-12', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-13', name: 'Med-13', location: 'Honea Path', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-14', name: 'Med-14', location: 'Powdersville', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-15', name: 'Med-15', location: 'Wren', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-16', name: 'Med-16', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-17', name: 'Med-17', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-18', name: 'Med-18', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
+    // Example: Trucks starting in an active status with a timer that counts up from now
 ];
 
-// Define the cycle order for truck statuses
+// Define the cycle order for truck statuses (all lowercase to match CSS)
 const statusCycleOrder = ['posted', 'en-route', 'on-scene', 'transporting', 'destination', 'logistics', 'available'];
 
 
@@ -86,7 +87,8 @@ function renderTrucks() {
 
         // Conciser display: Truck ID - Status (capitalize for display only)
         let content = `<p><strong>${truck.id}</strong></p>`;
-        content += `<p>${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
+        // Display "En-route" correctly
+        content += `<p>${truck.status === 'en-route' ? 'En-route' : truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
 
 
         // Always include the timer placeholder if it's a timed status, even if time is 0
@@ -128,6 +130,12 @@ function renderTrucks() {
 // Function to update the "System Level" display
 function updateSystemLevel(count) {
     availableTruckCountSpan.textContent = count;
+    // NEW: Flash page red if available trucks <= 3
+    if (count <= 3) {
+        document.body.classList.add('system-level-alert');
+    } else {
+        document.body.classList.remove('system-level-alert');
+    }
 }
 
 // Function to update a truck's status
@@ -282,7 +290,7 @@ function renderAdminTruckList() {
         const item = document.createElement('div');
         item.classList.add('admin-truck-item');
         item.innerHTML = `
-            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)})</span></span>
+            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status === 'en-route' ? 'En-route' : truck.status.charAt(0).toUpperCase() + truck.status.slice(1)})</span></span>
             <div class="controls">
                 <button class="edit-truck" data-id="${truck.id}">Edit</button>
                 ${truck.status === 'available' ? `<button class="take-down" data-id="${truck.id}">Take Down</button>` : ''}
@@ -387,7 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
             contextMenuList.innerHTML = ''; // Clear previous items
             statusCycleOrder.forEach(status => {
                 const listItem = document.createElement('li');
-                listItem.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                // Capitalize for display, use lowercase for data-status
+                listItem.textContent = status === 'en-route' ? 'En-route' : status.charAt(0).toUpperCase() + status.slice(1);
                 listItem.dataset.status = status; // Store status value (lowercase)
                 contextMenuList.appendChild(listItem);
             });

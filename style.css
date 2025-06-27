@@ -23,6 +23,9 @@
     --context-menu-border: #ccc;
     --context-menu-text: #333;
     --context-menu-hover-bg: #f0f0f0;
+
+    /* System Alert Color (light mode) */
+    --system-alert-bg: rgba(255, 0, 0, 0.1); /* Subtle red tint */
 }
 
 /* --- Dark Mode Variables --- */
@@ -47,6 +50,9 @@ body.dark-mode {
     --context-menu-border: #5a5a5a;
     --context-menu-text: #e0e0e0;
     --context-menu-hover-bg: #5a5a5a;
+
+    /* System Alert Color (dark mode) */
+    --system-alert-bg: rgba(255, 0, 0, 0.2); /* Slightly more prominent red tint for dark mode */
 }
 
 
@@ -100,7 +106,7 @@ header h1 {
     background-color: #6c757d; /* Grey button */
     color: white;
     border: none;
-    border-radius: 5px; /* Corrected: Changed 5_px to 5px */
+    border-radius: 5px; 
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin: 0 5px; /* Space between buttons */
@@ -154,7 +160,7 @@ header h1 {
     background-color: #28a745; /* Green */
 }
 
-.status-box.dispatched {
+.status-box.en-route { /* Changed from .status-box.dispatched */
     background-color: #007bff; /* Blue */
 }
 
@@ -174,7 +180,7 @@ header h1 {
     background-color: #6c757d; /* Grey */
 }
 
-.status-box.transporting { /* New: Color for Transporting status */
+.status-box.transporting { 
     background-color: #add8e6; /* Light Blue */
 }
 
@@ -215,24 +221,38 @@ header h1 {
     animation: flash-red 1s infinite alternate; /* Apply the red flash animation */
 }
 
+/* NEW: System Level Flashing Alert */
+@keyframes flash-page-red {
+    0%, 100% {
+        background-color: var(--body-bg); /* Use normal body background */
+    }
+    50% {
+        background-color: var(--system-alert-bg); /* Flash to red tint */
+    }
+}
+
+body.system-level-alert {
+    animation: flash-page-red 1.5s infinite alternate; /* Slower flash for whole page */
+}
+
 
 /* NEW: Custom Context Menu Styling */
 .context-menu {
-    position: fixed; /* Stays in place relative to the viewport */
+    position: fixed; 
     background-color: var(--context-menu-bg);
     border: 1px solid var(--context-menu-border);
     border-radius: 5px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* Ensure it's on top of other content */
-    display: none; /* Hidden by default, shown by JS */
-    padding: 5px 0; /* Padding inside the menu */
+    z-index: 1000; 
+    display: none; 
+    padding: 5px 0; 
     min-width: 150px;
-    color: var(--context-menu-text); /* Default text color */
+    color: var(--context-menu-text); 
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .context-menu ul {
-    list-style: none; /* Remove bullet points */
+    list-style: none; 
     padding: 0;
     margin: 0;
 }
@@ -241,7 +261,7 @@ header h1 {
     padding: 8px 15px;
     cursor: pointer;
     font-size: 0.9em;
-    white-space: nowrap; /* Prevent menu items from wrapping */
+    white-space: nowrap; 
 }
 
 .context-menu ul li:hover {
@@ -420,7 +440,7 @@ body.dark-mode .admin-form-section select {
 }
 
 /* Specific button colors (not changed by dark mode for consistency) */
-.admin-truck-item .controls button.set-en-route { background-color: purple; color: white; }
+.admin-truck-item .controls button.set-dispatched { background-color: #6c757d; color: white; } /* Old Dispatched - kept for reference if needed elsewhere */
 .admin-truck-item .controls button.set-available { background-color: #28a745; color: white; }
 .admin-truck-item .controls button.set-destination { background-color: #fd7e14; color: white; }
 .admin-truck-item .controls button.set-logistics { background-color: #007bff; color: white; }
