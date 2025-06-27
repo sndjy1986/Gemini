@@ -26,6 +26,19 @@
         </ul>
     </div>
 
+    <!-- NEW: Map Display Modal -->
+    <div id="mapModal" class="map-modal">
+        <div class="map-modal-content">
+            <span class="close-map-modal">&times;</span>
+            <h3 id="mapModalTitle">Map for Truck: </h3>
+            <div id="mapImageContainer">
+                <p id="mapLoadingText" style="display:none;">Generating map, please wait...</p>
+                <img id="mapImage" src="" alt="Map of Truck Location" style="display:none;">
+            </div>
+        </div>
+    </div>
+
+
     <!-- Admin Panel (will be hidden by default) -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-panel-content">

@@ -24,8 +24,13 @@
     --context-menu-text: #333;
     --context-menu-hover-bg: #f0f0f0;
 
-    /* System Alert Color (light mode) */
-    --system-alert-bg: rgba(255, 0, 0, 0.1); /* Subtle red tint */
+    /* System Alert Color (light mode) - NOW MORE RED */
+    --system-alert-bg: rgba(255, 0, 0, 0.9); /* More intense red tint for light mode */
+
+    /* Map Modal Colors */
+    --map-modal-bg-overlay: rgba(0, 0, 0, 0.8);
+    --map-modal-content-bg: #ffffff;
+    --map-modal-text: #333;
 }
 
 /* --- Dark Mode Variables --- */
@@ -51,8 +56,13 @@ body.dark-mode {
     --context-menu-text: #e0e0e0;
     --context-menu-hover-bg: #5a5a5a;
 
-    /* System Alert Color (dark mode) */
-    --system-alert-bg: rgba(255, 0, 0, 0.2); /* Slightly more prominent red tint for dark mode */
+    /* System Alert Color (dark mode) - NOW MORE RED */
+    --system-alert-bg: rgba(255, 0, 0, 1.0); /* Full opaque red for dark mode */
+
+    /* Map Modal Colors - Dark Mode */
+    --map-modal-bg-overlay: rgba(0, 0, 0, 0.9);
+    --map-modal-content-bg: #2c3034;
+    --map-modal-text: #f8f9fa;
 }
 
 
@@ -440,7 +450,7 @@ body.dark-mode .admin-form-section select {
 }
 
 /* Specific button colors (not changed by dark mode for consistency) */
-.admin-truck-item .controls button.set-dispatched { background-color: #6c757d; color: white; } /* Old Dispatched - kept for reference if needed elsewhere */
+.admin-truck-item .controls button.set-en-route { background-color: purple; color: white; }
 .admin-truck-item .controls button.set-available { background-color: #28a745; color: white; }
 .admin-truck-item .controls button.set-destination { background-color: #fd7e14; color: white; }
 .admin-truck-item .controls button.set-logistics { background-color: #007bff; color: white; }
