@@ -40,15 +40,15 @@ let auth;
 let userId;
 // The __app_id is provided by the Canvas environment.
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-// Firebase configuration provided by the user
+// Firebase configuration provided by the user (updated to database-d1c61)
 const firebaseConfig = {
-  apiKey: "AIzaSyCklzwkgbsTURdZOSMiPPH7t3mZziFcSgQ",
-  authDomain: "truck-s-46ad6.firebaseapp.com",
-  projectId: "truck-s-46ad6",
-  storageBucket: "truck-s-46ad6.firebasestorage.app",
-  messagingSenderId: "27865550941",
-  appId: "1:27865550941:web:1ab96020b8c82d2f793db4",
-  measurementId: "G-0VGFRGBEHJ"
+  apiKey: "AIzaSyA_f_4fIuphJLtW_uRRsLZZqLGFsDmUu6Q",
+  authDomain: "database-d1c61.firebaseapp.com",
+  projectId: "database-d1c61",
+  storageBucket: "database-d1c61.firebasestorage.app",
+  messagingSenderId: "702473947655",
+  appId: "1:702473947655:web:759faf5caa1a11379e38a2",
+  measurementId: "G-DJ45CCCWHM"
 };
 
 
