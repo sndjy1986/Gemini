@@ -1,6 +1,7 @@
 // script.js
 
 // --- 1. Centralized Truck Data ---
+// Initial default trucks (used if nothing in localStorage)
 let trucks = [
     { id: 'Med-1', name: 'Med-1', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-2', name: 'Med-2', location: 'Rock Springs', status: 'available', timer: null, timerEndTime: null },
@@ -10,13 +11,12 @@ let trucks = [
     { id: 'Med-6', name: 'Med-6', location: 'Iva', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-7', name: 'Med-7', location: 'Pendleton', status: 'available', timer: null, timerEndTime: null },
     { id: 'Med-8', name: 'Med-8', location: 'Townville', status: 'available', timer: null, timerEndTime: null },
-    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null}, 
-    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null}, 
+    { id: 'Med-9', name: 'Med-9', location: 'Centerville', status: 'available', timer: null, timerEndTime: null},
+    { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
 ];
 
 // Define the cycle order for truck statuses
 const statusCycleOrder = ['dispatched', 'destination', 'available', 'posted', 'logistics'];
-
 
 // Default timer durations (in minutes)
 let timerDefaults = {
@@ -37,8 +37,7 @@ const adminTruckList = document.getElementById('adminTruckList');
 const destinationTimeInput = document.getElementById('destinationTime');
 const logisticsTimeInput = document.getElementById('logisticsTime');
 const saveTimerDefaultsBtn = document.getElementById('saveTimerDefaults');
-const darkModeToggleBtn = document.getElementById('darkModeToggle'); // New Dark Mode Toggle button
-
+const darkModeToggleBtn = document.getElementById('darkModeToggle');
 
 // Add/Edit Truck Form Elements
 const truckFormTitle = document.getElementById('truckFormTitle');
@@ -49,8 +48,97 @@ const truckStatusSelect = document.getElementById('truckStatusSelect');
 const saveTruckBtn = document.getElementById('saveTruckBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
+// New: Data Management Elements
+const exportDataBtn = document.getElementById('exportDataBtn');
+const importFileInput = document.getElementById('importFileInput');
+
+// Custom Modal Elements
+const customModal = document.getElementById('customModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
+const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+const modalCancelBtn = document.getElementById('modalCancelBtn');
 
 // --- 3. Functions ---
+
+/**
+ * Shows a custom modal dialog.
+ * @param {string} message The message to display in the modal.
+ * @param {string} type 'alert' for a single OK button, 'confirm' for OK and Cancel.
+ * @param {function} callback Function to execute if 'OK' is clicked (for confirm type).
+ */
+function showModal(message, type = 'alert', callback = () => {}) {
+    modalTitle.textContent = type === 'alert' ? 'Notification' : 'Confirmation';
+    modalMessage.textContent = message;
+    customModal.classList.add('active');
+
+    if (type === 'confirm') {
+        customModal.classList.remove('alert-type');
+        modalConfirmBtn.onclick = () => {
+            customModal.classList.remove('active');
+            callback(true); // Indicate confirmation
+        };
+        modalCancelBtn.onclick = () => {
+            customModal.classList.remove('active');
+            callback(false); // Indicate cancellation
+        };
+    } else { // 'alert' type
+        customModal.classList.add('alert-type');
+        modalConfirmBtn.onclick = () => {
+            customModal.classList.remove('active');
+            callback(); // Just close, no boolean needed
+        };
+    }
+}
+
+
+/**
+ * Saves the current truck data and timer defaults to localStorage.
+ */
+function saveData() {
+    try {
+        localStorage.setItem('trucks', JSON.stringify(trucks));
+        localStorage.setItem('timerDefaults', JSON.stringify(timerDefaults));
+        // console.log("Data saved to localStorage.");
+    } catch (e) {
+        console.error("Error saving data to localStorage:", e);
+        showModal("Could not save data. Your browser may be in private mode or storage is full.", "alert");
+    }
+}
+
+/**
+ * Loads truck data and timer defaults from localStorage.
+ */
+function loadData() {
+    try {
+        const storedTrucks = localStorage.getItem('trucks');
+        const storedTimerDefaults = localStorage.getItem('timerDefaults');
+
+        if (storedTrucks) {
+            // Parse stored data, ensuring timers are cleared and not restored directly
+            const parsedTrucks = JSON.parse(storedTrucks);
+            // Clear any old intervals when loading to prevent memory leaks/duplicates
+            parsedTrucks.forEach(t => {
+                if (t.timer) clearInterval(t.timer); // Clear existing interval if it was running
+                t.timer = null; // Ensure timer property is nullified
+                // Re-evaluate timerEndTime for validity in case of long-term storage
+                if (t.timerEndTime && t.timerEndTime <= Date.now()) {
+                    t.status = 'available'; // If time expired, set to available
+                    t.timerEndTime = null;
+                }
+            });
+            trucks = parsedTrucks;
+        }
+        if (storedTimerDefaults) {
+            timerDefaults = JSON.parse(storedTimerDefaults);
+        }
+        // console.log("Data loaded from localStorage.");
+    } catch (e) {
+        console.error("Error loading data from localStorage:", e);
+        showModal("Could not load saved data. Data might be corrupted.", "alert");
+    }
+}
+
 
 // Function to render all trucks to the main display
 function renderTrucks() {
@@ -65,7 +153,7 @@ function renderTrucks() {
 
         // Conciser display: Truck ID - Status
         let content = `<p><strong>${truck.id}</strong></p>`;
-        content += `<p>${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
+        content += `<p>${truck.name} - ${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
 
 
         // Always include the timer placeholder, even if empty, to prevent layout shifts
@@ -78,7 +166,7 @@ function renderTrucks() {
             timerDisplay = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         content += `<p class="timer">${timerDisplay}</p>`; // Always add this <p> tag
-        
+
         box.innerHTML = content;
 
         // Add flash-alert class if timer < 1 minute (and > 0)
@@ -88,7 +176,7 @@ function renderTrucks() {
         } else {
             box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
         }
-        
+
         trucksContainer.appendChild(box);
 
         // Update available count
@@ -98,6 +186,7 @@ function renderTrucks() {
     });
 
     updateSystemLevel(availableCount);
+    saveData(); // Save data after rendering changes
 }
 
 // Function to update the "System Level" display
@@ -151,7 +240,7 @@ function addOrUpdateTruck() {
     const status = truckStatusSelect.value;
 
     if (!id || !name || !location) {
-        alert('Please fill in all truck details.');
+        showModal('Please fill in all truck details.', 'alert');
         return;
     }
 
@@ -174,7 +263,7 @@ function addOrUpdateTruck() {
     } else {
         // Add new truck
         if (trucks.some(truck => truck.id === id)) {
-            alert('Truck with this ID already exists. Please use a unique ID.');
+            showModal('Truck with this ID already exists. Please use a unique ID.', 'alert');
             return;
         }
         const newTruck = { id, name, location, status, timer: null, timerEndTime: null };
@@ -268,9 +357,11 @@ function renderAdminTruckList() {
     });
     adminTruckList.querySelectorAll('.take-down').forEach(button => {
         button.addEventListener('click', (e) => {
-            if (confirm(`Are you sure you want to take down ${e.target.dataset.id}? This cannot be undone.`)) {
-                removeTruck(e.target.dataset.id);
-            }
+            showModal(`Are you sure you want to take down ${e.target.dataset.id}? This cannot be undone.`, 'confirm', (confirmed) => {
+                if (confirmed) {
+                    removeTruck(e.target.dataset.id);
+                }
+            });
         });
     });
     // Removed status change buttons from admin panel as they are now handled by clicking the box
@@ -282,14 +373,29 @@ function initializeTimers() {
         if ((truck.status === 'destination' || truck.status === 'logistics')) {
             // Check if timerEndTime exists and is in the future
             if (truck.timerEndTime && truck.timerEndTime > Date.now()) {
-                updateTruckStatus(truck.id, truck.status); // This will restart the interval
-            } else if (!truck.timerEndTime && truck.initialDuration) {
-                // If no end time, but an initial duration, start new timer
-                truck.timerEndTime = Date.now() + (truck.initialDuration * 60 * 1000);
-                updateTruckStatus(truck.id, truck.status);
+                // If the truck was previously in a timed status and has time left,
+                // re-initiate its timer.
+                // We need to re-assign timer and timerEndTime after loading from localStorage.
+                const durationLeftMs = truck.timerEndTime - Date.now();
+                truck.timer = setInterval(() => {
+                    const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
+                    if (timeLeft <= 0) {
+                        clearInterval(truck.timer);
+                        truck.timer = null;
+                        truck.timerEndTime = null;
+                        updateTruckStatus(truck.id, 'available');
+                    } else {
+                        renderTrucks();
+                    }
+                }, 1000);
             } else if (truck.timerEndTime && truck.timerEndTime <= Date.now()) {
                 // If the timer has already expired, immediately transition to available
                 updateTruckStatus(truck.id, 'available');
+            }
+            // If timerEndTime is null for a timed status truck (e.g., initial state from default data),
+            // this implies it just entered that status. Start a new timer for it based on defaults.
+            else if (!truck.timerEndTime) {
+                updateTruckStatus(truck.id, truck.status);
             }
         }
     });
@@ -313,18 +419,105 @@ function applyDarkModePreference() {
     }
 }
 
+/**
+ * Exports current truck data as a JSON file.
+ */
+function exportTrucksToJson() {
+    // We only want to export the static data, not the setInterval timer objects.
+    const exportableTrucks = trucks.map(({ id, name, location, status, timerEndTime }) => ({
+        id,
+        name,
+        location,
+        status,
+        timerEndTime // timerEndTime can be re-used on import
+    }));
+    const data = {
+        trucks: exportableTrucks,
+        timerDefaults: timerDefaults
+    };
+    const jsonString = JSON.stringify(data, null, 2); // Pretty print JSON
+
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'truck_dispatch_data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // Clean up URL object
+    showModal('Truck data exported successfully to truck_dispatch_data.json!', 'alert');
+}
+
+/**
+ * Imports truck data from a selected JSON file.
+ * @param {Event} event The file input change event.
+ */
+function importTrucksFromJson(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            if (!importedData || !Array.isArray(importedData.trucks) || typeof importedData.timerDefaults !== 'object') {
+                showModal('Invalid JSON file format. Please ensure it contains "trucks" array and "timerDefaults" object.', 'alert');
+                return;
+            }
+
+            showModal('Importing new data will overwrite current truck data. Continue?', 'confirm', (confirmed) => {
+                if (confirmed) {
+                    // Clear all existing timers before loading new data
+                    trucks.forEach(truck => {
+                        if (truck.timer) clearInterval(truck.timer);
+                    });
+
+                    // Assign new data
+                    trucks = importedData.trucks.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        location: t.location,
+                        status: t.status,
+                        timer: null, // Always nullify timers on import, they will be re-initialized
+                        timerEndTime: t.timerEndTime // Preserve end time if available
+                    }));
+                    timerDefaults = importedData.timerDefaults;
+
+                    // Re-render and re-initialize timers for newly loaded data
+                    renderTrucks();
+                    renderAdminTruckList();
+                    initializeTimers(); // Start timers for imported trucks if needed
+                    // Update timer input fields in admin panel
+                    destinationTimeInput.value = timerDefaults.destination;
+                    logisticsTimeInput.value = timerDefaults.logistics;
+
+                    showModal('Truck data imported successfully!', 'alert');
+                }
+            });
+
+        } catch (error) {
+            console.error("Error parsing or importing JSON:", error);
+            showModal('Failed to read or parse JSON file. Please ensure it is a valid JSON.', 'alert');
+        }
+    };
+    reader.readAsText(file);
+    // Clear the file input so the same file can be selected again after a failed import
+    event.target.value = '';
+}
+
 
 // --- 4. Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', () => {
     applyDarkModePreference(); // Apply dark mode preference on load
+    loadData(); // Load data from localStorage on start
 
     renderTrucks(); // Initial render of all trucks
     initializeTimers(); // Start timers for any trucks already in timer status
-
-    // Removed hover effect event listeners, now truck boxes are static size:
-    // trucksContainer.addEventListener('mouseover', (event) => { ... });
-    // trucksContainer.addEventListener('mouseout', (event) => { ... });
 
     // New: Click to cycle truck status
     trucksContainer.addEventListener('click', (event) => {
@@ -367,13 +560,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const newLogTime = parseInt(logisticsTimeInput.value);
 
         if (isNaN(newDestTime) || isNaN(newLogTime) || newDestTime <= 0 || newLogTime <= 0) {
-            alert('Please enter valid positive numbers for timer defaults.');
+            showModal('Please enter valid positive numbers for timer defaults.', 'alert');
             return;
         }
 
         timerDefaults.destination = newDestTime;
         timerDefaults.logistics = newLogTime;
-        alert('Timer defaults saved!');
+        saveData(); // Save updated timer defaults
+        showModal('Timer defaults saved!', 'alert');
     });
 
     // Make admin panel content clickable, not the overlay itself
@@ -383,6 +577,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // New: Dark Mode Toggle Event Listener
+    // Dark Mode Toggle Event Listener
     darkModeToggleBtn.addEventListener('click', toggleDarkMode);
+
+    // New: Data Management Event Listeners
+    exportDataBtn.addEventListener('click', exportTrucksToJson);
+    importFileInput.addEventListener('change', importTrucksFromJson);
 });
