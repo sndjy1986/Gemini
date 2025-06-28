@@ -17,20 +17,6 @@
     --input-border: #ccc;
     --input-text: #333;
     --label-text: #555;
-
-    /* Context Menu Colors */
-    --context-menu-bg: #ffffff;
-    --context-menu-border: #ccc;
-    --context-menu-text: #333;
-    --context-menu-hover-bg: #f0f0f0;
-
-    /* System Alert Color (light mode) - NOW MORE RED */
-    --system-alert-bg: rgba(255, 0, 0, 0.9); /* More intense red tint for light mode */
-
-    /* Map Modal Colors */
-    --map-modal-bg-overlay: rgba(0, 0, 0, 0.8);
-    --map-modal-content-bg: #ffffff;
-    --map-modal-text: #333;
 }
 
 /* --- Dark Mode Variables --- */
@@ -49,20 +35,6 @@ body.dark-mode {
     --input-border: #6c757d;
     --input-text: #f8f9fa;
     --label-text: #adb5bd;
-
-    /* Context Menu Colors - Dark Mode */
-    --context-menu-bg: #3c4043;
-    --context-menu-border: #5a5a5a;
-    --context-menu-text: #e0e0e0;
-    --context-menu-hover-bg: #5a5a5a;
-
-    /* System Alert Color (dark mode) - NOW MORE RED */
-    --system-alert-bg: rgba(255, 0, 0, 1.0); /* Full opaque red for dark mode */
-
-    /* Map Modal Colors - Dark Mode */
-    --map-modal-bg-overlay: rgba(0, 0, 0, 0.9);
-    --map-modal-content-bg: #2c3034;
-    --map-modal-text: #f8f9fa;
 }
 
 
@@ -116,7 +88,7 @@ header h1 {
     background-color: #6c757d; /* Grey button */
     color: white;
     border: none;
-    border-radius: 5px; 
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin: 0 5px; /* Space between buttons */
@@ -144,11 +116,11 @@ header h1 {
 }
 
 .status-box {
-    /* Updated dimensions to 160px wide x 80px high */
-    width: 160px; 
-    height: 80px; 
-    padding: 8px; /* Adjusted padding slightly for new size */
-    font-size: 0.85em; /* Slightly smaller font for new box size */
+    /* Smaller dimensions than before */
+    width: 180px; /* Reduced from 250px */
+    height: 90px; /* Reduced from 120px */
+    padding: 10px; /* Reduced from 15px */
+    font-size: 0.9em; /* Slightly smaller font for the smaller box */
     
     display: flex;
     flex-direction: column;
@@ -170,29 +142,23 @@ header h1 {
     background-color: #28a745; /* Green */
 }
 
-.status-box.en-route { /* Changed from .status-box.dispatched */
-    background-color: #007bff; /* Blue */
+.status-box.dispatched {
+    background-color: #6c757d; /* Clear / Grey */
 }
 
 .status-box.destination {
-    background-color: #ffc107; /* Yellow */
-}
-
-.status-box.logistics {
-    background-color: #dc3545; /* Red */
-}
-
-.status-box.posted {
     background-color: #fd7e14; /* Orange */
 }
 
-.status-box.on-scene { 
-    background-color: #6c757d; /* Grey */
+.status-box.logistics {
+    background-color: #007bff; /* Blue */
 }
 
-.status-box.transporting { 
-    background-color: #add8e6; /* Light Blue */
+.status-box.posted {
+    background-color: #dc3545; /* Red */
 }
+
+/* Removed .status-box.expanded as it's no longer needed */
 
 .status-box p {
     margin: 0;
@@ -229,53 +195,6 @@ header h1 {
 
 .status-box.flash-alert {
     animation: flash-red 1s infinite alternate; /* Apply the red flash animation */
-}
-
-/* NEW: System Level Flashing Alert */
-@keyframes flash-page-red {
-    0%, 100% {
-        background-color: var(--body-bg); /* Use normal body background */
-    }
-    50% {
-        background-color: var(--system-alert-bg); /* Flash to red tint */
-    }
-}
-
-body.system-level-alert {
-    animation: flash-page-red 1.5s infinite alternate; /* Slower flash for whole page */
-}
-
-
-/* NEW: Custom Context Menu Styling */
-.context-menu {
-    position: fixed; 
-    background-color: var(--context-menu-bg);
-    border: 1px solid var(--context-menu-border);
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000; 
-    display: none; 
-    padding: 5px 0; 
-    min-width: 150px;
-    color: var(--context-menu-text); 
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-.context-menu ul {
-    list-style: none; 
-    padding: 0;
-    margin: 0;
-}
-
-.context-menu ul li {
-    padding: 8px 15px;
-    cursor: pointer;
-    font-size: 0.9em;
-    white-space: nowrap; 
-}
-
-.context-menu ul li:hover {
-    background-color: var(--context-menu-hover-bg);
 }
 
 
@@ -450,7 +369,7 @@ body.dark-mode .admin-form-section select {
 }
 
 /* Specific button colors (not changed by dark mode for consistency) */
-.admin-truck-item .controls button.set-en-route { background-color: purple; color: white; }
+.admin-truck-item .controls button.set-dispatched { background-color: #6c757d; color: white; }
 .admin-truck-item .controls button.set-available { background-color: #28a745; color: white; }
 .admin-truck-item .controls button.set-destination { background-color: #fd7e14; color: white; }
 .admin-truck-item .controls button.set-logistics { background-color: #007bff; color: white; }
