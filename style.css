@@ -32,6 +32,10 @@
     --modal-bg: #fff;
     --modal-text: #333;
     --modal-border: #ccc;
+
+    /* New Status Colors */
+    --status-onsceene-bg: #6f42c1; /* Purple */
+    --status-enroutetodestination-bg: #20c997; /* Teal */
 }
 
 /* --- Dark Mode Variables --- */
@@ -53,6 +57,10 @@ body.dark-mode {
     --modal-bg: #343a40;
     --modal-text: #f8f9fa;
     --modal-border: #495057;
+
+    /* Dark Mode New Status Colors (can be same or adjusted) */
+    --status-onsceene-bg: #7952b3; /* Slightly lighter purple */
+    --status-enroutetodestination-bg: #26a97b; /* Slightly darker teal */
 }
 
 
@@ -161,7 +169,7 @@ header h1 {
 
     /* Removed transition for size properties, kept for color and transform */
     transition: background-color 0.3s ease, transform 0.3s ease;
-    cursor: pointer; /* Indicate clickable */
+    cursor: context-menu; /* Indicate right-click for menu */
 }
 
 /* Specific colors for each status */
@@ -169,11 +177,19 @@ header h1 {
     background-color: #28a745; /* Green */
 }
 
-.status-box.dispatched {
-    background-color: #6c757d; /* Clear / Grey */
+.status-box.dispatched { /* En Route */
+    background-color: #6c757d; /* Grey */
 }
 
-.status-box.destination {
+.status-box.onScene { /* New status */
+    background-color: var(--status-onsceene-bg); /* Purple */
+}
+
+.status-box.enRouteToDestination { /* New status */
+    background-color: var(--status-enroutetodestination-bg); /* Teal */
+}
+
+.status-box.atDestination { /* Formerly 'destination' */
     background-color: #fd7e14; /* Orange */
 }
 
@@ -572,4 +588,42 @@ body.dark-mode .admin-panel .timer-settings input[type="number"] {
 /* Hide cancel button for alert type modal */
 .modal-overlay.alert-type .modal-buttons .cancel-btn {
     display: none;
+}
+
+/* --- New: Custom Context Menu Styling --- */
+.context-menu {
+    position: fixed;
+    background-color: var(--modal-bg);
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+    min-width: 180px;
+    display: none; /* Hidden by default */
+    border: 1px solid var(--modal-border);
+    color: var(--modal-text);
+}
+
+.context-menu.active {
+    display: block; /* Shown when active */
+}
+
+.context-menu-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.95em;
+    color: var(--modal-text);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.context-menu-item:hover {
+    background-color: var(--button-primary);
+    color: white;
+}
+
+.context-menu-item.danger-option:hover { /* Specific hover for "Posted" */
+    background-color: var(--button-danger);
+    color: white;
 }

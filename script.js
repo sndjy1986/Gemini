@@ -15,12 +15,13 @@ let trucks = [
     { id: 'Med-11', name: 'Med-11', location: 'City // HQ', status: 'available', timer: null, timerEndTime: null},
 ];
 
-// Define the cycle order for truck statuses
-const statusCycleOrder = ['dispatched', 'destination', 'available', 'posted', 'logistics'];
+// Define the order for right-click menu and status display (excluding 'posted' for direct cycling)
+const allTruckStatuses = ['available', 'dispatched', 'onScene', 'enRouteToDestination', 'atDestination', 'logistics', 'posted'];
+
 
 // Default timer durations (in minutes)
 let timerDefaults = {
-    destination: 30, // minutes
+    enRouteToDestination: 30, // minutes (formerly 'destination' time)
     logistics: 60    // minutes
 };
 
@@ -34,7 +35,7 @@ const adminPanelToggleBtn = document.getElementById('adminPanelToggle');
 const adminPanel = document.getElementById('adminPanel');
 const closeAdminPanelBtn = document.getElementById('closeAdminPanel');
 const adminTruckList = document.getElementById('adminTruckList');
-const destinationTimeInput = document.getElementById('destinationTime');
+const destinationTimeInput = document.getElementById('destinationTime'); // Renamed label in HTML for this
 const logisticsTimeInput = document.getElementById('logisticsTime');
 const saveTimerDefaultsBtn = document.getElementById('saveTimerDefaults');
 const darkModeToggleBtn = document.getElementById('darkModeToggle');
@@ -48,7 +49,7 @@ const truckStatusSelect = document.getElementById('truckStatusSelect');
 const saveTruckBtn = document.getElementById('saveTruckBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-// New: Data Management Elements
+// Data Management Elements
 const exportDataBtn = document.getElementById('exportDataBtn');
 const importFileInput = document.getElementById('importFileInput');
 
@@ -58,6 +59,11 @@ const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
 const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+// New: Custom Context Menu Elements
+const customContextMenu = document.getElementById('customContextMenu');
+let activeTruckIdForContextMenu = null; // To store which truck was right-clicked
+
 
 // --- 3. Functions ---
 
@@ -131,6 +137,13 @@ function loadData() {
         }
         if (storedTimerDefaults) {
             timerDefaults = JSON.parse(storedTimerDefaults);
+            // Ensure compatibility if old data had 'destination' instead of 'enRouteToDestination'
+            if (timerDefaults.destination && !timerDefaults.enRouteToDestination) {
+                timerDefaults.enRouteToDestination = timerDefaults.destination;
+                delete timerDefaults.destination; // Clean up old property
+            } else if (!timerDefaults.enRouteToDestination) {
+                timerDefaults.enRouteToDestination = 30; // Default if missing
+            }
         }
         // console.log("Data loaded from localStorage.");
     } catch (e) {
@@ -151,15 +164,32 @@ function renderTrucks() {
         box.classList.add('status-box', truck.status);
         box.dataset.truckId = truck.id; // Store truck ID on the element
 
-        // Conciser display: Truck ID - Status
+        // Map internal status names to user-friendly display names
+        let displayStatus = truck.status;
+        switch (truck.status) {
+            case 'dispatched':
+                displayStatus = 'En Route';
+                break;
+            case 'onScene':
+                displayStatus = 'On Scene';
+                break;
+            case 'enRouteToDestination':
+                displayStatus = 'En Route to Destination';
+                break;
+            case 'atDestination':
+                displayStatus = 'At Destination';
+                break;
+            // 'available', 'logistics', 'posted' remain as is
+        }
+
         let content = `<p><strong>${truck.id}</strong></p>`;
-        content += `<p>${truck.name} - ${truck.status.charAt(0).toUpperCase() + truck.status.slice(1)}</p>`;
+        content += `<p>${truck.name} - ${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}</p>`;
 
 
         // Always include the timer placeholder, even if empty, to prevent layout shifts
         let timerDisplay = '';
         let timeLeftSeconds = 0;
-        if ((truck.status === 'destination' || truck.status === 'logistics') && truck.timerEndTime) {
+        if ((truck.status === 'enRouteToDestination' || truck.status === 'logistics') && truck.timerEndTime) {
             timeLeftSeconds = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000)); // Time left in seconds
             const minutes = Math.floor(timeLeftSeconds / 60);
             const seconds = timeLeftSeconds % 60;
@@ -171,7 +201,7 @@ function renderTrucks() {
 
         // Add flash-alert class if timer < 1 minute (and > 0)
         // Flashes RED now!
-        if ((truck.status === 'destination' || truck.status === 'logistics') && timeLeftSeconds > 0 && timeLeftSeconds < 60) {
+        if ((truck.status === 'enRouteToDestination' || truck.status === 'logistics') && timeLeftSeconds > 0 && timeLeftSeconds < 60) {
             box.classList.add('flash-alert');
         } else {
             box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
@@ -209,8 +239,8 @@ function updateTruckStatus(truckId, newStatus) {
 
         truck.status = newStatus;
 
-        // Start timer if new status is destination or logistics
-        if (newStatus === 'destination' || newStatus === 'logistics') {
+        // Start timer if new status is enRouteToDestination or logistics
+        if (newStatus === 'enRouteToDestination' || newStatus === 'logistics') {
             const durationInMinutes = timerDefaults[newStatus];
             truck.timerEndTime = Date.now() + (durationInMinutes * 60 * 1000);
             truck.timer = setInterval(() => {
@@ -219,8 +249,13 @@ function updateTruckStatus(truckId, newStatus) {
                     clearInterval(truck.timer);
                     truck.timer = null;
                     truck.timerEndTime = null;
-                    // Auto-transition to available when timer expires
-                    updateTruckStatus(truckId, 'available'); // This will re-render
+                    // Auto-transition to available when timer expires for enRouteToDestination
+                    if (newStatus === 'enRouteToDestination') {
+                        updateTruckStatus(truckId, 'atDestination'); // After enRouteToDestination, move to At Destination
+                    } else if (newStatus === 'logistics') {
+                        updateTruckStatus(truckId, 'available'); // After logistics, move to Available
+                    }
+
                 } else {
                     renderTrucks(); // Re-render to update timer display and potentially flashing
                 }
@@ -269,7 +304,7 @@ function addOrUpdateTruck() {
         const newTruck = { id, name, location, status, timer: null, timerEndTime: null };
         trucks.push(newTruck);
         // If the new truck has a timed status, start its timer
-        if (status === 'destination' || status === 'logistics') {
+        if (status === 'enRouteToDestination' || status === 'logistics') {
             updateTruckStatus(id, status); // This will initiate the timer
         }
     }
@@ -341,8 +376,25 @@ function renderAdminTruckList() {
     trucks.forEach(truck => {
         const item = document.createElement('div');
         item.classList.add('admin-truck-item');
+
+        let displayStatus = truck.status;
+        switch (truck.status) {
+            case 'dispatched':
+                displayStatus = 'En Route';
+                break;
+            case 'onScene':
+                displayStatus = 'On Scene';
+                break;
+            case 'enRouteToDestination':
+                displayStatus = 'En Route to Destination';
+                break;
+            case 'atDestination':
+                displayStatus = 'At Destination';
+                break;
+        }
+
         item.innerHTML = `
-            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${truck.status})</span></span>
+            <span><strong>${truck.id}</strong> - ${truck.name} <span class="truck-details">(${truck.location ? truck.location + ' - ' : ''}Status: ${displayStatus})</span></span>
             <div class="controls">
                 <button class="edit-truck" data-id="${truck.id}">Edit</button>
                 ${truck.status === 'available' ? `<button class="take-down" data-id="${truck.id}">Take Down</button>` : ''}
@@ -364,18 +416,16 @@ function renderAdminTruckList() {
             });
         });
     });
-    // Removed status change buttons from admin panel as they are now handled by clicking the box
 }
 
 // Function to initialize timers on page load for trucks already in timer status
 function initializeTimers() {
     trucks.forEach(truck => {
-        if ((truck.status === 'destination' || truck.status === 'logistics')) {
+        if ((truck.status === 'enRouteToDestination' || truck.status === 'logistics')) {
             // Check if timerEndTime exists and is in the future
             if (truck.timerEndTime && truck.timerEndTime > Date.now()) {
                 // If the truck was previously in a timed status and has time left,
                 // re-initiate its timer.
-                // We need to re-assign timer and timerEndTime after loading from localStorage.
                 const durationLeftMs = truck.timerEndTime - Date.now();
                 truck.timer = setInterval(() => {
                     const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
@@ -383,14 +433,22 @@ function initializeTimers() {
                         clearInterval(truck.timer);
                         truck.timer = null;
                         truck.timerEndTime = null;
-                        updateTruckStatus(truck.id, 'available');
+                        if (truck.status === 'enRouteToDestination') {
+                            updateTruckStatus(truck.id, 'atDestination');
+                        } else if (truck.status === 'logistics') {
+                            updateTruckStatus(truck.id, 'available');
+                        }
                     } else {
                         renderTrucks();
                     }
                 }, 1000);
             } else if (truck.timerEndTime && truck.timerEndTime <= Date.now()) {
-                // If the timer has already expired, immediately transition to available
-                updateTruckStatus(truck.id, 'available');
+                // If the timer has already expired, immediately transition to the next state
+                if (truck.status === 'enRouteToDestination') {
+                    updateTruckStatus(truck.id, 'atDestination');
+                } else if (truck.status === 'logistics') {
+                    updateTruckStatus(truck.id, 'available');
+                }
             }
             // If timerEndTime is null for a timed status truck (e.g., initial state from default data),
             // this implies it just entered that status. Start a new timer for it based on defaults.
@@ -492,7 +550,7 @@ function importTrucksFromJson(event) {
                     renderAdminTruckList();
                     initializeTimers(); // Start timers for imported trucks if needed
                     // Update timer input fields in admin panel
-                    destinationTimeInput.value = timerDefaults.destination;
+                    destinationTimeInput.value = timerDefaults.enRouteToDestination;
                     logisticsTimeInput.value = timerDefaults.logistics;
 
                     showModal('Truck data imported successfully!', 'alert');
@@ -509,6 +567,59 @@ function importTrucksFromJson(event) {
     event.target.value = '';
 }
 
+/**
+ * Displays a custom context menu for truck status changes.
+ * @param {Event} event The contextmenu event.
+ * @param {string} truckId The ID of the truck that was right-clicked.
+ */
+function showCustomContextMenu(event, truckId) {
+    event.preventDefault(); // Prevent default browser context menu
+    activeTruckIdForContextMenu = truckId; // Store the truck ID
+
+    customContextMenu.innerHTML = ''; // Clear previous menu items
+
+    // Define user-friendly names for statuses
+    const statusDisplayNames = {
+        available: 'Available',
+        dispatched: 'En Route',
+        onScene: 'On Scene',
+        enRouteToDestination: 'En Route to Destination',
+        atDestination: 'At Destination',
+        logistics: 'Logistics',
+        posted: 'Posted'
+    };
+
+    allTruckStatuses.forEach(status => {
+        const menuItem = document.createElement('div');
+        menuItem.classList.add('context-menu-item');
+        menuItem.textContent = statusDisplayNames[status];
+        menuItem.dataset.status = status; // Store the actual status value
+
+        if (status === 'posted') {
+            menuItem.classList.add('danger-option'); // Add a class for specific styling
+        }
+
+        menuItem.addEventListener('click', () => {
+            updateTruckStatus(activeTruckIdForContextMenu, status);
+            hideCustomContextMenu();
+        });
+        customContextMenu.appendChild(menuItem);
+    });
+
+    // Position the menu
+    customContextMenu.style.left = `${event.clientX}px`;
+    customContextMenu.style.top = `${event.clientY}px`;
+    customContextMenu.classList.add('active'); // Show the menu
+}
+
+/**
+ * Hides the custom context menu.
+ */
+function hideCustomContextMenu() {
+    customContextMenu.classList.remove('active');
+    activeTruckIdForContextMenu = null;
+}
+
 
 // --- 4. Event Listeners ---
 
@@ -519,19 +630,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrucks(); // Initial render of all trucks
     initializeTimers(); // Start timers for any trucks already in timer status
 
-    // New: Click to cycle truck status
-    trucksContainer.addEventListener('click', (event) => {
+    // NEW: Right-click to show custom context menu for truck status
+    trucksContainer.addEventListener('contextmenu', (event) => {
         const targetBox = event.target.closest('.status-box');
         if (targetBox) {
             const truckId = targetBox.dataset.truckId;
-            const truckIndex = trucks.findIndex(truck => truck.id === truckId);
-            if (truckIndex > -1) {
-                const currentStatus = trucks[truckIndex].status;
-                const currentIndex = statusCycleOrder.indexOf(currentStatus);
-                const nextIndex = (currentIndex + 1) % statusCycleOrder.length;
-                const nextStatus = statusCycleOrder[nextIndex];
-                updateTruckStatus(truckId, nextStatus);
-            }
+            showCustomContextMenu(event, truckId);
+        } else {
+            hideCustomContextMenu(); // Hide if clicked outside a truck box
+        }
+    });
+
+    // Hide context menu if clicking anywhere else on the document
+    document.addEventListener('click', (event) => {
+        if (!customContextMenu.contains(event.target) && customContextMenu.classList.contains('active')) {
+            hideCustomContextMenu();
         }
     });
 
@@ -542,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAdminTruckList(); // Render list when opening admin panel
         resetTruckForm(); // Clear/reset form when opening panel
         // Set initial values for timer inputs
-        destinationTimeInput.value = timerDefaults.destination;
+        destinationTimeInput.value = timerDefaults.enRouteToDestination; // Updated property name
         logisticsTimeInput.value = timerDefaults.logistics;
     });
 
@@ -556,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save Timer Defaults
     saveTimerDefaultsBtn.addEventListener('click', () => {
-        const newDestTime = parseInt(destinationTimeInput.value);
+        const newDestTime = parseInt(destinationTimeInput.value); // Now for enRouteToDestination
         const newLogTime = parseInt(logisticsTimeInput.value);
 
         if (isNaN(newDestTime) || isNaN(newLogTime) || newDestTime <= 0 || newLogTime <= 0) {
@@ -564,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        timerDefaults.destination = newDestTime;
+        timerDefaults.enRouteToDestination = newDestTime; // Updated property name
         timerDefaults.logistics = newLogTime;
         saveData(); // Save updated timer defaults
         showModal('Timer defaults saved!', 'alert');
@@ -580,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dark Mode Toggle Event Listener
     darkModeToggleBtn.addEventListener('click', toggleDarkMode);
 
-    // New: Data Management Event Listeners
+    // Data Management Event Listeners
     exportDataBtn.addEventListener('click', exportTrucksToJson);
     importFileInput.addEventListener('change', importTrucksFromJson);
 });
