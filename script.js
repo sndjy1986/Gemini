@@ -136,11 +136,11 @@ function loadData() {
             parsedTrucks.forEach(t => {
                 if (t.timer) clearInterval(t.timer); // Clear existing interval if it was running
                 t.timer = null; // Ensure timer property is nullified
-                // Re-evaluate timerEndTime for validity in case of long-term storage
-                if (t.timerEndTime && t.timerEndTime <= Date.now()) {
-                    t.status = 'available'; // If time expired, set to available
-                    t.timerEndTime = null;
-                }
+                // Do NOT set to available here, let initializeTimers re-evaluate and display elapsed time
+                // if (t.timerEndTime && t.timerEndTime <= Date.now()) {
+                //     t.status = 'available'; // If time expired, set to available
+                //     t.timerEndTime = null;
+                // }
             });
             trucks = parsedTrucks;
         }
@@ -200,21 +200,30 @@ function renderTrucks() {
 
         // Always include the timer placeholder, even if empty, to prevent layout shifts
         let timerDisplay = '';
-        let timeLeftSeconds = 0;
-        // Timer only for 'atDestination' and 'logistics' statuses
+        let displayPrefix = '';
+        let totalSeconds = 0;
+        // Timer only for 'atDestination' and 'logistics' statuses, and if timerEndTime exists
         if ((truck.status === 'atDestination' || truck.status === 'logistics') && truck.timerEndTime) {
-            timeLeftSeconds = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000)); // Time left in seconds
-            const minutes = Math.floor(timeLeftSeconds / 60);
-            const seconds = timeLeftSeconds % 60;
-            timerDisplay = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timeLeftMs = truck.timerEndTime - Date.now();
+
+            if (timeLeftMs > 0) { // Still counting down
+                totalSeconds = Math.floor(timeLeftMs / 1000);
+                displayPrefix = ''; // No prefix for countdown
+            } else { // Timer has expired, count up
+                displayPrefix = '+';
+                totalSeconds = Math.floor(Math.abs(timeLeftMs) / 1000); // Absolute value for elapsed time
+            }
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            timerDisplay = `Time: ${displayPrefix}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         content += `<p class="timer">${timerDisplay}</p>`; // Always add this <p> tag
 
         box.innerHTML = content;
 
-        // Add flash-alert class if timer < 1 minute (and > 0)
-        // Flashes RED now!
-        if ((truck.status === 'atDestination' || truck.status === 'logistics') && timeLeftSeconds > 0 && timeLeftSeconds < 60) {
+        // Add flash-alert class if timer < 1 minute (and > 0), and only for countdown phase
+        if ((truck.status === 'atDestination' || truck.status === 'logistics') && truck.timerEndTime && (truck.timerEndTime - Date.now()) > 0 && (truck.timerEndTime - Date.now()) < 60000) { // 60 seconds = 60000 ms
             box.classList.add('flash-alert');
         } else {
             box.classList.remove('flash-alert'); // Ensure it's removed if condition no longer met
@@ -247,7 +256,7 @@ function updateTruckStatus(truckId, newStatus) {
         if (truck.timer) {
             clearInterval(truck.timer);
             truck.timer = null;
-            truck.timerEndTime = null;
+            // truck.timerEndTime = null; // Do NOT clear timerEndTime here if you want elapsed time
         }
 
         truck.status = newStatus;
@@ -257,19 +266,18 @@ function updateTruckStatus(truckId, newStatus) {
             const durationInMinutes = timerDefaults[newStatus]; // Uses 'atDestination' or 'logistics'
             truck.timerEndTime = Date.now() + (durationInMinutes * 60 * 1000);
             truck.timer = setInterval(() => {
-                const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
-                if (timeLeft <= 0) {
-                    clearInterval(truck.timer);
-                    truck.timer = null;
-                    truck.timerEndTime = null;
-                    // Auto-transition when timer expires
-                    if (newStatus === 'atDestination' || newStatus === 'logistics') { // Both transition to available
-                        updateTruckStatus(truckId, 'available');
-                    }
-                } else {
-                    renderTrucks(); // Re-render to update timer display and potentially flashing
+                // The interval's primary purpose is to ensure renderTrucks is called
+                // to update the display, whether counting down or up.
+                if (Date.now() >= truck.timerEndTime && truck.timer) { // If time has passed and interval is still running
+                    clearInterval(truck.timer); // Stop the interval once expired
+                    truck.timer = null; // Clear timer reference
                 }
+                renderTrucks(); // Re-render to update timer display and potentially flashing
             }, 1000); // Update every second
+        } else {
+            // If status changes away from a timed status, ensure timerEndTime is reset
+            // This prevents old elapsed times from appearing if the truck returns to a non-timed status
+            truck.timerEndTime = null;
         }
 
         renderTrucks(); // Re-render all trucks to reflect status change
@@ -433,33 +441,22 @@ function initializeTimers() {
     trucks.forEach(truck => {
         // Timer only for 'atDestination' and 'logistics' statuses
         if ((truck.status === 'atDestination' || truck.status === 'logistics')) {
-            // Check if timerEndTime exists and is in the future
-            if (truck.timerEndTime && truck.timerEndTime > Date.now()) {
-                // If the truck was previously in a timed status and has time left,
-                // re-initiate its timer.
-                const durationLeftMs = truck.timerEndTime - Date.now();
+            // Check if timerEndTime exists
+            if (truck.timerEndTime) {
+                // If the truck was previously in a timed status, re-initiate its timer.
+                // The interval's primary purpose is to ensure renderTrucks is called
+                // to update the display, whether counting down or up.
                 truck.timer = setInterval(() => {
-                    const timeLeft = Math.max(0, Math.floor((truck.timerEndTime - Date.now()) / 1000));
-                    if (timeLeft <= 0) {
-                        clearInterval(truck.timer);
-                        truck.timer = null;
-                        truck.timerEndTime = null;
-                        if (truck.status === 'atDestination' || truck.status === 'logistics') { // Both transition to available
-                            updateTruckStatus(truck.id, 'available');
-                        }
-                    } else {
-                        renderTrucks();
+                    if (Date.now() >= truck.timerEndTime && truck.timer) { // If time has passed and interval is still running
+                        clearInterval(truck.timer); // Stop the interval once expired
+                        truck.timer = null; // Clear timer reference
                     }
+                    renderTrucks();
                 }, 1000);
-            } else if (truck.timerEndTime && truck.timerEndTime <= Date.now()) {
-                // If the timer has already expired, immediately transition to the next state
-                if (truck.status === 'atDestination' || truck.status === 'logistics') { // Both transition to available
-                    updateTruckStatus(truck.id, 'available');
-                }
             }
             // If timerEndTime is null for a timed status truck (e.g., initial state from default data),
             // this implies it just entered that status. Start a new timer for it based on defaults.
-            else if (!truck.timerEndTime) {
+            else {
                 updateTruckStatus(truck.id, truck.status);
             }
         }
