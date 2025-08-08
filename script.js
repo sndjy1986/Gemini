@@ -599,7 +599,7 @@ function showCustomContextMenu(event, truckId) {
         enRouteToDestination: 'En Route to Destination',
         atDestination: 'At Destination',
         logistics: 'Logistics',
-        posted: 'Posted'
+        Unavailable: 'Unavailable'
     };
 
     allTruckStatuses.forEach(status => {
@@ -730,4 +730,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Data Management Event Listeners
     exportDataBtn.addEventListener('click', exportTrucksToJson);
     importFileInput.addEventListener('change', importTrucksFromJson);
+
 });
