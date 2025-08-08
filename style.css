@@ -197,8 +197,8 @@ header h1 {
     background-color: #007bff; /* Blue */
 }
 
-.status-box.posted {
-    background-color: #dc3545; /* Red */
+.status-box.unavailable {
+    background-color: #343a40; /* Red */
 }
 
 .status-box p {
@@ -229,7 +229,7 @@ header h1 {
         transform: scale(1);
     }
     50% {
-        box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.7); /* More prominent red glow */
+        box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7); /* More prominent red glow */
         transform: scale(1.02);
     }
 }
@@ -627,3 +627,4 @@ body.dark-mode .admin-panel .timer-settings input[type="number"] {
     background-color: var(--button-danger);
     color: white;
 }
+
