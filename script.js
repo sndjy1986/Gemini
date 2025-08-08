@@ -23,7 +23,7 @@ let trucks = [
 ];
 
 // Define the order for right-click menu and status display
-const allTruckStatuses = ['available', 'dispatched', 'onScene', 'enRouteToDestination', 'atDestination', 'logistics', 'posted'];
+const allTruckStatuses = ['available', 'dispatched', 'onScene', 'enRouteToDestination', 'atDestination', 'logistics', 'unavailable'];
 
 // Define the cycle order for left-click cycling (excluding 'posted')
 const statusCycleOrder = ['available', 'dispatched', 'onScene', 'enRouteToDestination', 'atDestination'];
@@ -732,3 +732,4 @@ document.addEventListener('DOMContentLoaded', () => {
     importFileInput.addEventListener('change', importTrucksFromJson);
 
 });
+
